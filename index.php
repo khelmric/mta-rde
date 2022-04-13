@@ -36,6 +36,9 @@
    <h3>MTA - Raw Data Extractor</h3>
    <button onclick="helpEnFunction()">Help (En)</button>
    <button onclick="helpHuFunction()">Help (Hu)</button>
+   <button onClick="window.open('https://github.com/khelmric/mta-rde');"> 
+     <span>Code Repo on Github</span>
+   </button>
 
    <div id="helpEn" style="display:none">
      <ol>
