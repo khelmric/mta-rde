@@ -9,6 +9,10 @@ declare -A dd_chart_data1
 declare dd_chart_counter
 declare -A asb_chart_data1
 declare asb_chart_counter
+declare -A y_chart_data1
+declare y_chart_counter
+declare -A x_chart_data1
+declare x_chart_counter
 
 ### FUNCTIONS ######################################################################
 
@@ -50,7 +54,7 @@ declare asb_chart_counter
       done
       echo "</tr>"
     done
-    echo "</table>"
+    echo "</table><br>"
   }
 
   function asb_chart_to_array() {
@@ -87,11 +91,46 @@ declare asb_chart_counter
     done< <(grep -A30 "function refreshFunctionChartDDAncient1" $1|egrep 'labels: \[|data: \[|backgroundColor: \['|sed 's/.*\[//'|sed 's/\].*//')
   }
 
+  function y_chart_to_array() {
+    y_chart_counter=0
+    line_counter=0
+    while read line; do
+      element_counter=0
+      elements=$(echo $line|sed 's/\"//g'|sed 's/, /\n/g'|sed 's/ /-/g')
+      for element in $elements; do
+        y_chart_data1[$line_counter,$element_counter]="$element"
+        ((element_counter++))
+        if [[ "$line_counter" -eq 0 ]]; then
+          ((y_chart_counter++))
+        fi
+      done
+    ((line_counter++))
+    done< <(grep -A30 'document.getElementById("pieChartY' $1|egrep 'labels: \[|data: \[|backgroundColor: \['|sed 's/.*\[//'|sed 's/\].*//')
+  }
+
+  function x_chart_to_array() {
+    x_chart_counter=0
+    line_counter=0
+    while read line; do
+      element_counter=0
+      elements=$(echo $line|sed 's/\"//g'|sed 's/, /\n/g'|sed 's/ /-/g')
+      for element in $elements; do
+        x_chart_data1[$line_counter,$element_counter]="$element"
+        ((element_counter++))
+        if [[ "$line_counter" -eq 0 ]]; then
+          ((x_chart_counter++))
+        fi
+      done
+    ((line_counter++))
+    done< <(grep -A30 'document.getElementById("pieChartX' $1|egrep 'labels: \[|data: \[|backgroundColor: \['|sed 's/.*\[//'|sed 's/\].*//')
+  }
+
   function print_chart_as_table() {
     var=$(declare -p "$1")
     eval "declare -A array_to_print="${var#*=}
     table_name="$2"
     maxelements=$3
+    unit=$4
 
     echo "<h4>$table_name</h4>"
     echo "<table style="width:400px">"
@@ -105,23 +144,29 @@ declare asb_chart_counter
           echo -n ">${array_to_print[$col,$row]}"
         fi
         if [[ "$col" -eq 1 ]]; then
-          echo -n "%"
+          echo -n "$unit"
         fi
         echo -n "</td>"
       done
       echo "</tr>"
     done
-    echo "</table>"
+    echo "</table><br>"
   }
 
 ### MAIN ############################################################################
 
     asb_chart_to_array $file1
-    print_chart_as_table "asb_chart_data1" "Ancient Sample Breakdown Chart Data" $asb_chart_counter
+    print_chart_as_table "asb_chart_data1" "Ancient Sample Breakdown Chart Data" $asb_chart_counter "%"
 
     dd_chart_to_array $file1
-    print_chart_as_table "dd_chart_data1" "Deep Dive Chart Data" $dd_chart_counter
+    print_chart_as_table "dd_chart_data1" "Deep Dive Chart Data" $dd_chart_counter "%"
+
+    y_chart_to_array $file1
+    print_chart_as_table "y_chart_data1" "Y-DNA Haplogroups Chart Data" $y_chart_counter "%"
+
+    x_chart_to_array $file1
+    print_chart_as_table "x_chart_data1" "mtDNA Haplogroups Chart Data" $x_chart_counter "%"
 
     samplematch_to_array $file1
-    print_array_as_table "sample_match_data1" "Sample Maches" "No;Name;Y-DNA;mtDNA;Age;GD;Arch ID" "sm_no;sm_name;sm_ydna;sm_mtdna;sm_age;sm_gd;sm_aid" $sm_counter
+    print_array_as_table "sample_match_data1" "Maching Samples" "No;Name;Y-DNA;mtDNA;Age;GD;Arch ID" "sm_no;sm_name;sm_ydna;sm_mtdna;sm_age;sm_gd;sm_aid" $sm_counter
 
