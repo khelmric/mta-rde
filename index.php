@@ -94,29 +94,16 @@
          </ul>
 -->
       </form>
+      <hr>
 
 <?php
-  $html = file_get_contents("uploads/".$file_name);
-  $html_data2 = explode(PHP_EOL, $html);
-  $remaining = array_filter($html_data2, function($line) {
-     return strpos($line, 'Sample match #') !== false;
-  });
-  $remaining = preg_replace('/^.*<br>.*<br>.*<br>.*<br>.*<br>.*<br>.*<br>.*$/i', '\1', $remaining);
-  $remaining = array_map('trim', $remaining);
-    $remaining = array_filter($remaining, function($value) {
-        return $value !== '';
-    });
-  $remaining = preg_replace('/^(.*)$/', '<tr><td>$1</td></tr>', $remaining);
-  $remaining = preg_replace('/<BR>/i', '</td><td>', $remaining);
-  $patterns_to_remove = array('/\"/','/title: /','/,/');
-  $remaining = preg_replace($patterns_to_remove, '', $remaining);
-  $remaining = preg_replace('/^(<tr><td>Sample match #1:)/', '</table><table>$1', $remaining);
-  $remaining = preg_replace('/<table>/', '<hr><h3>Raw data</h3><table>', $remaining);
-  $remaining = implode(PHP_EOL, $remaining);
-  $remaining = "<table>" . $remaining . "</table>";
-  echo $remaining;
-//  echo implode(PHP_EOL, $remaining);
-
+  if(isset($_FILES['html_file'])){
+    $script_with_parameters="./mta-data-to-html.sh " . $file_path;
+    exec($script_with_parameters, $output, $status);
+    foreach($output as $value) {
+        echo $value;
+    }
+  }
 ?>
    </body>
 </html>
