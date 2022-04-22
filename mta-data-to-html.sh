@@ -94,15 +94,16 @@ declare asb_chart_counter
     maxelements=$3
 
     echo "<h4>$table_name</h4>"
-    echo "<table>"
+    echo "<table style="width:400px">"
     for ((row=0;row<$maxelements;row++)); do
       echo -n "<tr>"
-      for ((col=0;col<2;col++)); do
+      for ((col=0;col<3;col++)); do
         echo -n "<td"
-        if [[ "$col" -eq 0 ]]; then
-          echo -n " style=\"background-color:${array_to_print[2,$row]};\""
-        fi   
-        echo -n ">${array_to_print[$col,$row]}"
+        if [[ "$col" -eq 2 ]]; then
+          echo -n " style=\"background-color:${array_to_print[2,$row]};\">"
+        else   
+          echo -n ">${array_to_print[$col,$row]}"
+        fi
         if [[ "$col" -eq 1 ]]; then
           echo -n "%"
         fi
@@ -115,11 +116,12 @@ declare asb_chart_counter
 
 ### MAIN ############################################################################
 
-  asb_chart_to_array $file1
-  print_chart_as_table "asb_chart_data1" "Ancient Sample Breakdown Chart Data" $asb_chart_counter
+    asb_chart_to_array $file1
+    print_chart_as_table "asb_chart_data1" "Ancient Sample Breakdown Chart Data" $asb_chart_counter
 
-  dd_chart_to_array $file1
-  print_chart_as_table "dd_chart_data1" "Deep Dive Chart Data" $dd_chart_counter
+    dd_chart_to_array $file1
+    print_chart_as_table "dd_chart_data1" "Deep Dive Chart Data" $dd_chart_counter
 
-  samplematch_to_array $file1
-  print_array_as_table "sample_match_data1" "Sample Maches" "No;Name;Y-DNA;mtDNA;Age;GD;Arch ID" "sm_no;sm_name;sm_ydna;sm_mtdna;sm_age;sm_gd;sm_aid" $sm_counter
+    samplematch_to_array $file1
+    print_array_as_table "sample_match_data1" "Sample Maches" "No;Name;Y-DNA;mtDNA;Age;GD;Arch ID" "sm_no;sm_name;sm_ydna;sm_mtdna;sm_age;sm_gd;sm_aid" $sm_counter
+
