@@ -4,14 +4,19 @@ file2="$2"
 
 declare -A array_to_print
 declare -A sample_match_data1
+declare -A sample_match_data2
 declare sm_counter
 declare -A dd_chart_data1
+declare -A dd_chart_data2
 declare dd_chart_counter
 declare -A asb_chart_data1
+declare -A asb_chart_data2
 declare asb_chart_counter
 declare -A y_chart_data1
+declare -A y_chart_data2
 declare y_chart_counter
 declare -A x_chart_data1
+declare -A x_chart_data2
 declare x_chart_counter
 
 ### FUNCTIONS ######################################################################
@@ -155,18 +160,42 @@ declare x_chart_counter
 
 ### MAIN ############################################################################
 
-    asb_chart_to_array $file1
-    print_chart_as_table "asb_chart_data1" "Ancient Sample Breakdown Chart Data" $asb_chart_counter "%"
+echo '<div class="row">'
+  echo '<div class="column" style="background-color:#fafafa;">'
+    if [[ ! -z "$file1" ]]; then
+      asb_chart_to_array $file1
+      print_chart_as_table "asb_chart_data1" "Ancient Sample Breakdown Chart Data" $asb_chart_counter "%"
 
-    dd_chart_to_array $file1
-    print_chart_as_table "dd_chart_data1" "Deep Dive Chart Data" $dd_chart_counter "%"
+      dd_chart_to_array $file1
+      print_chart_as_table "dd_chart_data1" "Deep Dive Chart Data" $dd_chart_counter "%"
 
-    y_chart_to_array $file1
-    print_chart_as_table "y_chart_data1" "Y-DNA Haplogroups Chart Data" $y_chart_counter "%"
+      y_chart_to_array $file1
+      print_chart_as_table "y_chart_data1" "Y-DNA Haplogroups Chart Data" $y_chart_counter "%"
 
-    x_chart_to_array $file1
-    print_chart_as_table "x_chart_data1" "mtDNA Haplogroups Chart Data" $x_chart_counter "%"
+      x_chart_to_array $file1
+      print_chart_as_table "x_chart_data1" "mtDNA Haplogroups Chart Data" $x_chart_counter "%"
 
-    samplematch_to_array $file1
-    print_array_as_table "sample_match_data1" "Maching Samples" "No;Name;Y-DNA;mtDNA;Age;GD;Arch ID" "sm_no;sm_name;sm_ydna;sm_mtdna;sm_age;sm_gd;sm_aid" $sm_counter
+      samplematch_to_array $file1
+      print_array_as_table "sample_match_data1" "Maching Samples" "No;Name;Y-DNA;mtDNA;Age;GD;Arch ID" "sm_no;sm_name;sm_ydna;sm_mtdna;sm_age;sm_gd;sm_aid" $sm_counter
+    fi
+  echo '</div>'
+  echo '<div class="column" style="background-color:#fafafa;">'
+    if [[ ! -z "$file2" ]]; then
+      asb_chart_to_array $file2
+      print_chart_as_table "asb_chart_data1" "Ancient Sample Breakdown Chart Data" $asb_chart_counter "%"
+
+      dd_chart_to_array $file2
+      print_chart_as_table "dd_chart_data1" "Deep Dive Chart Data" $dd_chart_counter "%"
+
+      y_chart_to_array $file2
+      print_chart_as_table "y_chart_data1" "Y-DNA Haplogroups Chart Data" $y_chart_counter "%"
+
+      x_chart_to_array $file2
+      print_chart_as_table "x_chart_data1" "mtDNA Haplogroups Chart Data" $x_chart_counter "%"
+
+      samplematch_to_array $file2
+      print_array_as_table "sample_match_data1" "Maching Samples" "No;Name;Y-DNA;mtDNA;Age;GD;Arch ID" "sm_no;sm_name;sm_ydna;sm_mtdna;sm_age;sm_gd;sm_aid" $sm_counter
+    fi
+  echo '</div>'
+echo '</div>'
 

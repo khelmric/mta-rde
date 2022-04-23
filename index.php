@@ -1,5 +1,5 @@
 <?php
-   if(isset($_FILES['html_file'])){
+   if(!empty($_FILES['html_file']['name'])){
       $errors= array();
       $timestamp=time();
       $file_name = $timestamp . "-" . $_FILES['html_file']['name'];
@@ -21,9 +21,34 @@
 
       if(empty($errors)==true) {
          move_uploaded_file($file_tmp,$file_path);
-//         echo "Success";
       }else{
          print_r($errors);
+      }
+   }
+   if(!empty($_FILES['html_file2']['name'])){
+      $errors2= array();
+      $timestamp2=time();
+      $file_name2 = $timestamp2 . "-" . $_FILES['html_file2']['name'];
+      $file_path2="uploads/" . $file_name2;
+      $file_size2 = $_FILES['html_file2']['size'];
+      $file_tmp2 = $_FILES['html_file2']['tmp_name'];
+      $file_type2 = $_FILES['html_file2']['type'];
+      $file_ext2=strtolower(end(explode('.',$_FILES['html_file2']['name'])));
+
+      $extensions= array("html");
+
+      if(in_array($file_ext2,$extensions)=== false){
+         $errors2[]="extension not allowed, please choose a HTML file.";
+      }
+
+      if($file_size2 > 10485760) {
+         $errors2[]='File size cannot be greater than 10 MB';
+      }
+
+      if(empty($errors2)==true) {
+         move_uploaded_file($file_tmp2,$file_path2);
+      }else{
+         print_r($errors2);
       }
    }
 ?>
@@ -33,7 +58,7 @@
      <link rel="stylesheet" href="style.css">
    </head>
    <body>
-   <h3>MTA - Raw Data Extractor</h3>
+   <h2 style="text-align: center;">MyTrueAncestry - Raw Data Extractor</h3>
    <button onclick="helpEnFunction()">Help (En)</button>
    <button onclick="helpHuFunction()">Help (Hu)</button>
    <button onClick="window.open('https://github.com/khelmric/mta-rde');"> 
@@ -44,7 +69,7 @@
      <ol>
        <li>Login to <a href="https://mytrueancestry.com">https://mytrueancestry.com</a>.</li>
        <li>Save the webpage in html format.</li>
-       <li>On the <a href="http://oci.atomx.hu/mta-rde">http://oci.atomx.hu/mta-rde</a> select the html file.</li>
+       <li>On the <a href="http://oci.atomx.hu/mta-rde">http://oci.atomx.hu/mta-rde</a> select the html file. (Selecting the second file allows a comparsin for two results.)</li>
        <li>Click on the "Submit" button.</li>
      </ol>   
      The uploaded file will be stored temporary (<5 min) on the server. 
@@ -53,7 +78,7 @@
      <ol>
        <li>Jelentkezz be a <a href="https://mytrueancestry.com">https://mytrueancestry.com</a> oldalra.</li>
        <li>Mentsd le a weboldalt html formátumban.</li>
-       <li>A <a href="http://oci.atomx.hu/mta-rde">http://oci.atomx.hu/mta-rde</a> oldalon válaszd ki a html fájlt.</li>
+       <li>A <a href="http://oci.atomx.hu/mta-rde">http://oci.atomx.hu/mta-rde</a> oldalon válaszd ki a html fájlt. (A második fájl kiválasztásával összehasonlítható két különböző eredmény.)</li>
        <li>Kattints a "Küldés" gombra.</li>
      </ol>
      A feltöltött fájl ideiglenesen (<5 perc) tárolódik a szerveren.
@@ -82,28 +107,30 @@
      }
    </script>
 
+  <div class="row">
+    <div class="column">
       <form action = "" method = "POST" enctype = "multipart/form-data">
-         <input type = "file" name = "html_file" />
-         <input type = "submit"/>
-
-<!--         <ul>
-            <li>Sent file  : <?php echo $_FILES['html_file']['name'];  ?>
-            <li>Stored file: <?php echo $file_name;  ?>
-            <li>File size  : <?php echo $_FILES['html_file']['size'];  ?>
-            <li>File type  : <?php echo $_FILES['html_file']['type'] ?>
-         </ul>
--->
+         File1: <input type = "file" name = "html_file" /><br>
+         File2: <input type = "file" name = "html_file2" /><br>
+         <br><input type = "submit"/>
+           <br><br>File name  : <?php echo $_FILES['html_file']['name'];  ?>
       </form>
+    </div>
+    <div class="column">
+           <br><br><br><br><br>File name  : <?php echo $_FILES['html_file2']['name'];  ?>
+    </div>
+  </div>
       <hr>
 
 <?php
-  if(isset($_FILES['html_file'])){
-    $script_with_parameters="./mta-data-to-html.sh " . $file_path;
-    exec($script_with_parameters, $output, $status);
-    foreach($output as $value) {
-        echo $value;
-    }
+  if(!empty($_FILES['html_file']['name']) || !empty($_FILES['html_file2']['name'])){
+      $script_with_parameters="./mta-data-to-html.sh " . $file_path . " " . $file_path2;
+      exec($script_with_parameters, $output, $status);
+      foreach($output as $value) {
+          echo $value;
+      }
   }
+  
 ?>
    </body>
 </html>
