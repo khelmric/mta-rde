@@ -69,7 +69,7 @@
      <ol>
        <li>Login to <a href="https://mytrueancestry.com">https://mytrueancestry.com</a>.</li>
        <li>Save the webpage in html format.</li>
-       <li>On the <a href="http://oci.atomx.hu/mta-rde">http://oci.atomx.hu/mta-rde</a> select the html file. (Selecting the second file allows a comparsin for two results.)</li>
+       <li>On the <a href="http://oci.atomx.hu/mta-rde">http://oci.atomx.hu/mta-rde</a> select the html file. (Selecting the second file allows a comparsion of two results.)</li>
        <li>Click on the "Submit" button.</li>
      </ol>   
      The uploaded file will be stored temporary (<5 min) on the server. 
