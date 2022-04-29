@@ -10,30 +10,44 @@ button {
   margin-top: 10px;
   margin-bottom: 10px;
 }
-
+div {
+  height: max-content !important;
+}
 table {
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: x-small;
-  border-collapse: collapse;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: x-small !important;
+  border-collapse: collapse !important;
   width: 100%;
+  height: max-content !important;
+  line-height: 200% !important;
+  overflow: visible !important;
 }
 
 td, th {
-  border: 1px solid #ddd;
-  padding: 8px;
-  font-weight: bold;
+  border: 1px solid #ddd !important;
+  padding: 8px !important;
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+  padding-right: 3px !important;
+  padding-left: 3px !important;
+  background-image:none !important;
 }
 
-tr:nth-child(even){background-color: #f1f2f7;}
+tr:nth-child(even){background-color: #f1f2f7}
 
-tr:hover {background-color: #ddd;}
+tr:hover {background-color: #ddd}
 
 th {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  text-align: left;
-  background-color: #f9faff;
-  color: white;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  text-align: left !important;
+  background-color: #555655 !important;
+  color: white !important;
+  font-weight: bold !important;
+}
+
+h2 {
+  text-align: center;
 }
 
 hr { 
