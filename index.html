@@ -12,6 +12,8 @@
 
    <body style="font-family: Arial, Helvetica, sans-serif;">
 
+   <button onclick="topFunction()" id="topButton" title="Go to top">Top</button>
+
    <h2>MyTrueAncestry - Raw Data Extractor</h3>
    <button onclick="helpEnFunction()">Help (En)</button>
    <button onclick="helpHuFunction()">Help (Hu)</button>
@@ -35,6 +37,27 @@
            (A második fájl kiválasztásával összehasonlítható két különböző eredmény.)</li>
      </ol>
    </div>
+
+  <script>
+  //Get the button
+  var mybutton = document.getElementById("topButton");
+
+  window.onscroll = function() {scrollFunction()};
+
+  function scrollFunction() {
+    if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+      mybutton.style.display = "block";
+    } else {
+      mybutton.style.display = "none";
+    }
+  }
+
+  function topFunction() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+  }
+  </script>
+
 
    <script>
      function helpHuFunction() {
@@ -72,6 +95,23 @@
       return textContent;
     }
 
+    function listSmallDataTransform(textContent, mREGEX, sREGEX1, sREGEX2, sREGEX3, sREGEX4, sREGEX5) {
+      textContent = textContent.match(mREGEX);
+      textContent = String(textContent);
+      textContent = textContent.replace(sREGEX1, '');
+      textContent = String(textContent);
+      textContent = textContent.replace(sREGEX2, ';');
+      textContent = String(textContent);
+      textContent = textContent.replace(sREGEX3, ',');
+      textContent = String(textContent);
+      textContent = textContent.replace(sREGEX4, ' ');
+      textContent = String(textContent);
+      textContent = textContent.replace(sREGEX5, '');
+      textContent = String(textContent);
+console.log(textContent);
+      return textContent;
+    }  
+
     function listDataTransform(textContent, matchNo, mREGEX, sREGEX1, sREGEX2, sREGEX3, sREGEX4, sREGEX5, sREGEX6) {
       textContent = textContent.match(mREGEX);
       textContent = String(textContent[matchNo]);
@@ -104,11 +144,16 @@
       var data = new google.visualization.DataTable();
 
       data.addColumn('string', 'Description');
-      data.addColumn('string', 'Value');
+      data.addColumn('number', 'Value');
       data.addColumn('string', 'Color');
 
       for (var i = 0; i < chartLabelArray.length; i++) {
-        var rowContent = 'data.addRow([chartLabelArray[i], chartDataArray[i], {v: null, f: null, p: {style: "background-color: ' + chartBgColorArray[i] + ';"}}]);';
+        var dataValueAsInt = chartDataArray[i].replace(/\s?/g, '');
+        if ( dataValueAsInt.search( /\./ ) == 2) {
+          dataValueAsInt = dataValueAsInt + '0';
+        }
+        dataValueAsInt = parseInt(dataValueAsInt.replace(/\./, ''));
+        var rowContent = 'data.addRow([chartLabelArray[i], {v: ' + dataValueAsInt + ', f: "' + chartDataArray[i] + '"}, {v: null, f: null, p: {style: "background-color: ' + chartBgColorArray[i] + ';"}}]);';
         eval(rowContent);
       }
       var table = new google.visualization.Table(targetDivId);
@@ -120,13 +165,42 @@
 
     }
 
+    function printSmallListAsTable(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5, targetDivId, tableHeader) {
+      listContent = listSmallDataTransform(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5);
+      listContentLineArray = listContent.split(';');
+
+      var data = new google.visualization.DataTable();
+
+
+      headersArray = tableHeader.split(',');
+      for (var i = 0; i < headersArray.length; i++) {
+        data.addColumn('string', headersArray[i]);
+      }
+
+      for (var i = 0; i < listContentLineArray.length-1; i++) {        
+        listContentElementArray = listContentLineArray[i].split(',');
+        var rowContent = "";
+        for (var j = 0; j < listContentElementArray.length; j++) {
+          cleanVar = listContentElementArray[j].replace(/\<br\>/g, '');
+          if (rowContent) {
+            rowContent += ", '" + cleanVar + "'";
+          } else {
+            rowContent = "data.addRow(['" + cleanVar + "'";
+          }
+        }
+        rowContent += "]);";
+        eval(rowContent);
+      }
+      var table = new google.visualization.Table(targetDivId);
+      table.draw(data, {showRowNumber: false, width: '100%', height: '100%', allowHtml: true});
+    }
+
     function printListAsTable(textContent, matchNo, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5, subREGEX6, targetDivId, tableHeader) {
       listContent = listDataTransform(textContent, matchNo, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5, subREGEX6);
       listContentLineArray = listContent.split(';');
 
       var data = new google.visualization.DataTable();
-
-      
+ 
       headersArray = tableHeader.split(',');
       for (var i = 0; i < headersArray.length; i++) {
         data.addColumn('string', headersArray[i]);
@@ -194,14 +268,33 @@
       ddarMatchNo=1;
       ddarTableHeader="Name,Y-DNA,mtDNA,Age,Longest Shared DNA,Arch ID";
 
+      mainREGEXcmod=/Your\s?closest\s?genetic\s?modern[\s\S]*?\<hr\>/;
+      subREGEX1cmod=/Your\s?closest[\s\S]*?\<\/a\>|\<hr\>|\<br\>/g;
+      subREGEX2cmod=/\)/g;
+      subREGEX3cmod=/\s+[^+]|\s+\(/g;
+      subREGEX4cmod=/\_/g;
+      subREGEX5cmod=/\(|^,|,$/g;
+      cmodTableHeader="No,Name,GD";
+
+      mainREGEXcanc=/Your\s?closest\s?Ancient\s?populations[\s\S]*?\<a/;
+      subREGEX1canc=/Your\s?closest[\s\S]*?\<\/div\>\<\/div\>\<hr\>|\<br\>|\<\/font\>|\<font\s?color\=\"[\S]{6}\"\>|\<a|\n/g;
+      subREGEX2canc=/\)/g;
+      subREGEX3canc=/\s+[^+]\s+|\s+\(/g;
+      subREGEX4canc=/\_/g;
+      subREGEX5canc=/\(|^,|,$/g;
+      cancTableHeader="Name,GD";
+
       if (col == 1) {
+        printSmallListAsTable(textContent, mainREGEXcanc, subREGEX1canc, subREGEX2canc, subREGEX3canc, subREGEX4canc, subREGEX5canc, document.getElementById("canc1_result"), cancTableHeader);
+        printSmallListAsTable(textContent, mainREGEXcmod, subREGEX1cmod, subREGEX2cmod, subREGEX3cmod, subREGEX4cmod, subREGEX5cmod, document.getElementById("cmod1_result"), cmodTableHeader);
         printListAsTable(textContent, smMatchNo, mainREGEXsm, subREGEX1sm, subREGEX2sm, subREGEX3sm, subREGEX4sm, subREGEX5sm, subREGEX6sm, document.getElementById("sm1_result"), smTableHeader);
         printListAsTable(textContent, ddarMatchNo, mainREGEXddar, subREGEX1ddar, subREGEX2ddar, subREGEX3ddar, subREGEX4ddar, subREGEX5ddar, subREGEX6ddar, document.getElementById("ddar1_result"), ddarTableHeader);
       } else {
+        printSmallListAsTable(textContent, mainREGEXcanc, subREGEX1canc, subREGEX2canc, subREGEX3canc, subREGEX4canc, subREGEX5canc, document.getElementById("canc2_result"), cancTableHeader);
+        printSmallListAsTable(textContent, mainREGEXcmod, subREGEX1cmod, subREGEX2cmod, subREGEX3cmod, subREGEX4cmod, subREGEX5cmod, document.getElementById("cmod2_result"), cmodTableHeader);
         printListAsTable(textContent, smMatchNo, mainREGEXsm, subREGEX1sm, subREGEX2sm, subREGEX3sm, subREGEX4sm, subREGEX5sm, subREGEX6sm, document.getElementById("sm2_result"), smTableHeader);
         printListAsTable(textContent, ddarMatchNo, mainREGEXddar, subREGEX1ddar, subREGEX2ddar, subREGEX3ddar, subREGEX4ddar, subREGEX5ddar, subREGEX6ddar, document.getElementById("ddar2_result"), ddarTableHeader);
       }
-
     }
 
    </script>
@@ -236,6 +329,26 @@
     </div>
     <div class="column">
       <div id="dd2_result"></div>
+    </div>
+  </div>
+
+  <div class="row" id="canc">
+    <h3>Closest Ancient Populations</h3>
+    <div class="column">
+      <div id="canc1_result"></div>
+    </div>
+    <div class="column">
+      <div id="canc2_result"></div>
+    </div>
+  </div>
+
+  <div class="row" id="cmod">
+    <h3>Closest Modern Populations</h3>
+    <div class="column">
+      <div id="cmod1_result"></div>
+    </div>
+    <div class="column">
+      <div id="cmod2_result"></div>
     </div>
   </div>
 
