@@ -108,7 +108,6 @@
       textContent = String(textContent);
       textContent = textContent.replace(sREGEX5, '');
       textContent = String(textContent);
-console.log(textContent);
       return textContent;
     }  
 
@@ -131,7 +130,7 @@ console.log(textContent);
       return textContent;
     }
 
-    function printChartAsTable(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, targetDivId) {
+    function printChartAsTable(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, targetDivId, chartDivId) {
       chartLabels = chartDataTransform(textContent, mainREGEX, subREGEX1);
       chartLabelArray = chartLabels.split(',');
 
@@ -158,10 +157,19 @@ console.log(textContent);
       }
       var table = new google.visualization.Table(targetDivId);
       table.draw(data, {showRowNumber: false, width: '100%', height: '100%', allowHtml: true});
-
-//      data.removeColumn(2);
-//      var chart1 = new google.visualization.PieChart(document.getElementById("test_div"));
-//      chart1.draw(data);
+  
+      var chart1 = new google.visualization.PieChart(chartDivId);
+      chart1.draw(data, {
+          width: '500', 
+          height: '400',
+          colors: chartBgColorArray,
+          is3D: true,
+          legend: {
+            textStyle: {
+              fontSize: 8
+            }
+          }
+      });
 
     }
 
@@ -225,6 +233,8 @@ console.log(textContent);
     }
  
     async function openFileFunction(event,col) {
+
+      for (let el of document.querySelectorAll('.header')) el.style.display = 'block';
       const selectedFile = event.target.files.item(0);
       textContent = await selectedFile.text();
 
@@ -237,15 +247,15 @@ console.log(textContent);
       subREGEX3=/backgroundColor[\s\S]*?\]/g;
 
       if (col == 1) {
-        printChartAsTable(textContent, mainREGEXasb, subREGEX1, subREGEX2, subREGEX3, document.getElementById("asb1_result"));
-        printChartAsTable(textContent, mainREGEXdd, subREGEX1, subREGEX2, subREGEX3, document.getElementById("dd1_result"));
-        printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("ydna1_result"));
-        printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("mtdna1_result"));
+        printChartAsTable(textContent, mainREGEXasb, subREGEX1, subREGEX2, subREGEX3, document.getElementById("asb1_result"), document.getElementById("asb1_chart1"));
+        printChartAsTable(textContent, mainREGEXdd, subREGEX1, subREGEX2, subREGEX3, document.getElementById("dd1_result"), document.getElementById("dd1_chart1"));
+        printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("ydna1_result"), document.getElementById("ydna1_chart1"));
+        printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("mtdna1_result"), document.getElementById("mtdna1_chart1"));
       } else {
-        printChartAsTable(textContent, mainREGEXasb, subREGEX1, subREGEX2, subREGEX3, document.getElementById("asb2_result"));
-        printChartAsTable(textContent, mainREGEXdd, subREGEX1, subREGEX2, subREGEX3, document.getElementById("dd2_result"));
-        printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("ydna2_result"));
-        printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("mtdna2_result"));
+        printChartAsTable(textContent, mainREGEXasb, subREGEX1, subREGEX2, subREGEX3, document.getElementById("asb2_result"), document.getElementById("asb2_chart1"));
+        printChartAsTable(textContent, mainREGEXdd, subREGEX1, subREGEX2, subREGEX3, document.getElementById("dd2_result"), document.getElementById("dd2_chart1"));
+        printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("ydna2_result"), document.getElementById("ydna2_chart1"));
+        printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("mtdna2_result"), document.getElementById("mtdna2_chart1"));
       }
 
       mainREGEXsm=/refreshFunctionGlobeHaplo1\(samplemax\) \{[\s\S]*?\]\;/g;
@@ -311,7 +321,7 @@ console.log(textContent);
   <hr>
 
   <div class="row" id="asb">
-    <h3>Ancient Samples - Civilization Full Breakdown</h3>
+    <h3 class="header" style="display:none">Ancient Samples Full Breakdown</h3>
     <div class="column">
       <div id="asb1_chart1"></div>
       <div id="asb1_result"></div>
@@ -323,17 +333,19 @@ console.log(textContent);
   </div>
 
   <div class="row" id="dd">
-    <h3>Deep Dive Full Breakdown</h3>
+    <h3 class="header" style="display:none">Deep Dive Full Breakdown</h3>
     <div class="column">
+      <div id="dd1_chart1"></div>
       <div id="dd1_result"></div>
     </div>
     <div class="column">
+      <div id="dd2_chart1"></div>
       <div id="dd2_result"></div>
     </div>
   </div>
 
   <div class="row" id="canc">
-    <h3>Closest Ancient Populations</h3>
+    <h3 class="header" style="display:none">Closest Ancient Populations</h3>
     <div class="column">
       <div id="canc1_result"></div>
     </div>
@@ -343,7 +355,7 @@ console.log(textContent);
   </div>
 
   <div class="row" id="cmod">
-    <h3>Closest Modern Populations</h3>
+    <h3 class="header" style="display:none">Closest Modern Populations</h3>
     <div class="column">
       <div id="cmod1_result"></div>
     </div>
@@ -353,27 +365,31 @@ console.log(textContent);
   </div>
 
   <div class="row" id="ydna">
-    <h3>Y-DNA Breakdown</h3>
+    <h3 class="header" style="display:none">Y-DNA Breakdown</h3>
     <div class="column">
+      <div id="ydna1_chart1"></div>
       <div id="ydna1_result"></div>
     </div>
     <div class="column">
+      <div id="ydna2_chart1"></div>
       <div id="ydna2_result"></div>
     </div>
   </div>
 
   <div class="row" id="mtdna">
-    <h3>mtDNA Breakdown</h3>
+    <h3 class="header" style="display:none">mtDNA Breakdown</h3>
     <div class="column">
+      <div id="mtdna1_chart1"></div>
       <div id="mtdna1_result"></div>
     </div>
     <div class="column">
+      <div id="mtdna2_chart1"></div>
       <div id="mtdna2_result"></div>
     </div>
   </div>
 
   <div class="row" id="sm">
-    <h3>The Closest Archaeogenetic matches</h3>
+    <h3 class="header" style="display:none">The Closest Archaeogenetic matches</h3>
     <div class="column">
       <div id="sm1_result"></div>
     </div>
@@ -383,7 +399,7 @@ console.log(textContent);
   </div>
 
   <div class="row" id="ddar">
-    <h3>Deep Dive - Ancient Relatives</h3>
+    <h3 class="header" style="display:none">Deep Dive - Ancient Relatives</h3>
     <div class="column">
       <div id="ddar1_result"></div>
     </div>
@@ -391,6 +407,14 @@ console.log(textContent);
       <div id="ddar2_result"></div>
     </div>
   </div>
-  <div id="test_div"></div>
+
+  <div class="row" id="test_div_main">
+    <div class="column">
+      <div id="test_div"></div>
+    </div>
+    <div class="column">
+      <div id="test_div2"></div>
+    </div>
+  </div>
    </body>
 </html>
