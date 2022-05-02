@@ -98,6 +98,8 @@
     function listSmallDataTransform(textContent, mREGEX, sREGEX1, sREGEX2, sREGEX3, sREGEX4, sREGEX5) {
       textContent = textContent.match(mREGEX);
       textContent = String(textContent);
+      textContent = textContent.replace(/\s+\+\s+/g, '+');
+      textContent = String(textContent);
       textContent = textContent.replace(sREGEX1, '');
       textContent = String(textContent);
       textContent = textContent.replace(sREGEX2, ';');
@@ -238,8 +240,8 @@
       const selectedFile = event.target.files.item(0);
       textContent = await selectedFile.text();
 
-      mainREGEXasb=/refreshFunctionChartAncient1\(jobid\) \{[\s\S]*?\}/g;
-      mainREGEXdd=/refreshFunctionChartDDAncient1\(jobid\) \{[\s\S]*?\}/g;
+      mainREGEXasb=/refreshFunctionChartAncient.?\(jobid\) \{[\s\S]*?\}/g;
+      mainREGEXdd=/refreshFunctionChartDDAncient.?\(jobid\) \{[\s\S]*?\}/g;
       mainREGEXydna=/document.getElementById\(\"pieChartY[\s\S]*?\{[\s\S]*?\}/g;
       mainREGEXmtdna=/document.getElementById\(\"pieChartX[\s\S]*?\{[\s\S]*?\}/g;
       subREGEX1=/labels[\s\S]*?\]/g;
@@ -258,7 +260,7 @@
         printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("mtdna2_result"), document.getElementById("mtdna2_chart1"));
       }
 
-      mainREGEXsm=/refreshFunctionGlobeHaplo1\(samplemax\) \{[\s\S]*?\]\;/g;
+      mainREGEXsm=/refreshFunctionGlobeHaplo.?\(samplemax\) \{[\s\S]*?\]\;/g;
       subREGEX1sm=/title[\s\S]*?\,/g;
       subREGEX2sm=/title\"\:\s?\"Sample\s?match\s?\#/g;
       subREGEX3sm=/\"\,\,|\"\,/g;
@@ -279,19 +281,19 @@
       ddarTableHeader="Name,Y-DNA,mtDNA,Age,Longest Shared DNA,Arch ID";
 
       mainREGEXcmod=/Your\s?closest\s?genetic\s?modern[\s\S]*?\<hr\>/;
-      subREGEX1cmod=/Your\s?closest[\s\S]*?\<\/a\>|\<hr\>|\<br\>/g;
+      subREGEX1cmod=/Your\s?closest[\s\S]*?\<\/a\>|\<hr\>|\<br\>|\n/g;
       subREGEX2cmod=/\)/g;
-      subREGEX3cmod=/\s+[^+]|\s+\(/g;
+      subREGEX3cmod=/\s+\(/g;
       subREGEX4cmod=/\_/g;
       subREGEX5cmod=/\(|^,|,$/g;
-      cmodTableHeader="No,Name,GD";
+      cmodTableHeader="Name,GD";
 
       mainREGEXcanc=/Your\s?closest\s?Ancient\s?populations[\s\S]*?\<a/;
       subREGEX1canc=/Your\s?closest[\s\S]*?\<\/div\>\<\/div\>\<hr\>|\<br\>|\<\/font\>|\<font\s?color\=\"[\S]{6}\"\>|\<a|\n/g;
       subREGEX2canc=/\)/g;
-      subREGEX3canc=/\s+[^+]\s+|\s+\(/g;
+      subREGEX3canc=/\s+\(/g;
       subREGEX4canc=/\_/g;
-      subREGEX5canc=/\(|^,|,$/g;
+      subREGEX5canc=/\(|^,|,$|\s+/g;
       cancTableHeader="Name,GD";
 
       if (col == 1) {
