@@ -24,6 +24,7 @@
    <div id="helpEn" style="display:none">
      <ol>
        <li>Login to <a href="https://mytrueancestry.com">https://mytrueancestry.com</a>.</li>
+       <li>Select one Kit. (If All Kits are selected only the first will be investigated.)</li>
        <li>Save the webpage in html format.</li>
        <li>On the <a href="http://oci.atomx.hu/mta-rde">http://oci.atomx.hu/mta-rde</a> select the html file(s). 
            (Selecting the second file allows a comparsion of two results.)</li>
@@ -32,6 +33,7 @@
    <div id="helpHu" style="display:none">
      <ol>
        <li>Jelentkezz be a <a href="https://mytrueancestry.com">https://mytrueancestry.com</a> oldalra.</li>
+       <li>Válassz ki egy Kit-et. Az összes Kit kijelölése esetén csak az elsőt vizsgálja a program.</li>
        <li>Mentsd le a weboldalt html formátumban.</li>
        <li>A <a href="http://oci.atomx.hu/mta-rde">http://oci.atomx.hu/mta-rde</a> oldalon válaszd ki a html fájlt/fájlokat. 
            (A második fájl kiválasztásával összehasonlítható két különböző eredmény.)</li>
@@ -132,9 +134,26 @@
       return textContent;
     }
 
-    function printChartAsTable(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, targetDivId, chartDivId) {
+    function getKitData(textContent, target, mREGEX, sREGEX1) {
+      textContent = textContent.match(mREGEX);
+      textContent = String(textContent);
+      textContent = textContent.replace(sREGEX1, '');
+      textContent = String(textContent);
+      kitContent = textContent.split('"');
+      targetNameDiv = document.getElementById(target + '_name');
+      targetNumberDiv = document.getElementById(target + '_number');
+      targetNameDiv.innerHTML=kitContent[1];
+      targetNumberDiv.innerHTML=kitContent[0];
+      return kitContent[0];
+    }
+
+    function printChartAsTable(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, target) {
       chartLabels = chartDataTransform(textContent, mainREGEX, subREGEX1);
       chartLabelArray = chartLabels.split(',');
+
+      tableDivId = document.getElementById(target + '_result');
+      chart1DivId = document.getElementById(target + '_chart1');
+      buttonsDivId = document.getElementById(target + '_buttons');
 
       chartData = chartDataTransform(textContent, mainREGEX, subREGEX2);
       chartDataArray = chartData.split(',');
@@ -157,30 +176,36 @@
         var rowContent = 'data.addRow([chartLabelArray[i], {v: ' + dataValueAsInt + ', f: "' + chartDataArray[i] + '"}, {v: null, f: null, p: {style: "background-color: ' + chartBgColorArray[i] + ';"}}]);';
         eval(rowContent);
       }
-      var table = new google.visualization.Table(targetDivId);
+      var table = new google.visualization.Table(tableDivId);
       table.draw(data, {showRowNumber: false, width: '100%', height: '100%', allowHtml: true});
-  
-      var chart1 = new google.visualization.PieChart(chartDivId);
+ 
+      var chart1 = new google.visualization.PieChart(chart1DivId);
       chart1.draw(data, {
-          width: '500', 
-          height: '400',
+          width: '600', 
+          height: '500',
           colors: chartBgColorArray,
           is3D: true,
           legend: {
             textStyle: {
-              fontSize: 8
+              fontSize: 9
             }
           }
       });
 
+      // Prepare and display download buttons
+      var csvContent = google.visualization.dataTableToCsv(data);
+      var csvData = new Blob([csvContent]);
+      buttonsDivId.innerHTML = '<a href=\"' + chart1.getImageURI() + '\" download=\"chart.png\"> <button type=\"button\">\&\#8681\; .png</button></a>' + '<a href=\"' + URL.createObjectURL(csvData) + '\" download=\"data.csv\" type=\"text/csv\"><button type=\"button\">\&\#8681\; .csv</button></a>';
     }
 
-    function printSmallListAsTable(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5, targetDivId, tableHeader) {
+    function printSmallListAsTable(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5, target, tableHeader) {
       listContent = listSmallDataTransform(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5);
       listContentLineArray = listContent.split(';');
 
       var data = new google.visualization.DataTable();
 
+      tableDivId = document.getElementById(target + '_result');
+      buttonsDivId = document.getElementById(target + '_buttons');
 
       headersArray = tableHeader.split(',');
       for (var i = 0; i < headersArray.length; i++) {
@@ -191,7 +216,7 @@
         listContentElementArray = listContentLineArray[i].split(',');
         var rowContent = "";
         for (var j = 0; j < listContentElementArray.length; j++) {
-          cleanVar = listContentElementArray[j].replace(/\<br\>/g, '');
+          cleanVar = listContentElementArray[j].replace(/\<br\>|\'/g, '');
           if (rowContent) {
             rowContent += ", '" + cleanVar + "'";
           } else {
@@ -201,15 +226,24 @@
         rowContent += "]);";
         eval(rowContent);
       }
-      var table = new google.visualization.Table(targetDivId);
+      var table = new google.visualization.Table(tableDivId);
       table.draw(data, {showRowNumber: false, width: '100%', height: '100%', allowHtml: true});
+
+      // Prepare and display download buttons
+      var csvContent = google.visualization.dataTableToCsv(data);
+      var csvData = new Blob([csvContent]);
+      buttonsDivId.innerHTML = '<a href=\"' + URL.createObjectURL(csvData) + '\" download=\"data.csv\" type=\"text/csv\"><button type=\"button\">\&\#8681\; .csv</button></a>';
+
     }
 
-    function printListAsTable(textContent, matchNo, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5, subREGEX6, targetDivId, tableHeader) {
+    function printListAsTable(textContent, matchNo, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5, subREGEX6, target, tableHeader) {
       listContent = listDataTransform(textContent, matchNo, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5, subREGEX6);
       listContentLineArray = listContent.split(';');
 
       var data = new google.visualization.DataTable();
+
+      tableDivId = document.getElementById(target + '_result');
+      buttonsDivId = document.getElementById(target + '_buttons');
  
       headersArray = tableHeader.split(',');
       for (var i = 0; i < headersArray.length; i++) {
@@ -220,7 +254,7 @@
         listContentElementArray = listContentLineArray[i].split(',');
         var rowContent = "";
         for (var j = 0; j < listContentElementArray.length; j++) {
-          cleanVar = listContentElementArray[j].replace(/\<br\>/g, '');
+          cleanVar = listContentElementArray[j].replace(/\<br\>|\'/g, '');
           if (rowContent) {
             rowContent += ", '" + cleanVar + "'";
           } else {
@@ -230,8 +264,13 @@
         rowContent += "]);";
         eval(rowContent);
       }
-      var table = new google.visualization.Table(targetDivId);
+      var table = new google.visualization.Table(tableDivId);
       table.draw(data, {showRowNumber: false, width: '100%', height: '100%', allowHtml: true});
+
+      // Prepare and display download buttons
+      var csvContent = google.visualization.dataTableToCsv(data);
+      var csvData = new Blob([csvContent]);
+      buttonsDivId.innerHTML = '<a href=\"' + URL.createObjectURL(csvData) + '\" download=\"data.csv\" type=\"text/csv\"><button type=\"button\">\&\#8681\; .csv</button></a>';
     }
  
     async function openFileFunction(event,col) {
@@ -240,27 +279,38 @@
       const selectedFile = event.target.files.item(0);
       textContent = await selectedFile.text();
 
-      mainREGEXasb=/refreshFunctionChartAncient.?\(jobid\) \{[\s\S]*?\}/g;
-      mainREGEXdd=/refreshFunctionChartDDAncient.?\(jobid\) \{[\s\S]*?\}/g;
-      mainREGEXydna=/document.getElementById\(\"pieChartY[\s\S]*?\{[\s\S]*?\}/g;
-      mainREGEXmtdna=/document.getElementById\(\"pieChartX[\s\S]*?\{[\s\S]*?\}/g;
+      // Get Kit info from html text
+      if (col == 1) {
+        kitDivInfo="kit1";
+      } else {
+        kitDivInfo="kit2";
+      }
+      mainREGEXkit=/Kit\:.*show.*\<\/a\>/;
+      subREGEX1kit=/.*id\=\"name|\ onclick[\s\S]*?\>|\<\/a\>/g;
+      var kitNumber = getKitData(textContent, kitDivInfo, mainREGEXkit, subREGEX1kit);
+
+      // Get ASB, DD, Y-DNA and mtDNA data from html text
+      var mainREGEXasb = new RegExp('refreshFunctionChartAncient' + kitNumber + '\\(jobid\\) \\{[\\s\\S]*?\\}', "g");
+      var mainREGEXdd =  new RegExp('refreshFunctionChartDDAncient' + kitNumber + '\\(jobid\\) \{[\\s\\S]*?\\}', "g");
+      var mainREGEXydna = new RegExp('refreshFunctionChart' + kitNumber + '\\(job[\\s\\S]*?options', "g");
+      var mainREGEXmtdna = new RegExp('\\#pieChartYData' + kitNumber + '[\\s\\S]*?document.getElementById\\(\\"pieChartX[\\s\\S]*?\\{[\\s\\S]*?\\}', "g");
       subREGEX1=/labels[\s\S]*?\]/g;
       subREGEX2=/data[\s\S]*?\]/g;
       subREGEX3=/backgroundColor[\s\S]*?\]/g;
 
       if (col == 1) {
-        printChartAsTable(textContent, mainREGEXasb, subREGEX1, subREGEX2, subREGEX3, document.getElementById("asb1_result"), document.getElementById("asb1_chart1"));
-        printChartAsTable(textContent, mainREGEXdd, subREGEX1, subREGEX2, subREGEX3, document.getElementById("dd1_result"), document.getElementById("dd1_chart1"));
-        printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("ydna1_result"), document.getElementById("ydna1_chart1"));
-        printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("mtdna1_result"), document.getElementById("mtdna1_chart1"));
+        printChartAsTable(textContent, mainREGEXasb, subREGEX1, subREGEX2, subREGEX3, "asb1");
+        printChartAsTable(textContent, mainREGEXdd, subREGEX1, subREGEX2, subREGEX3, "dd1");
+        printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, "ydna1");
+        printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, "mtdna1");
       } else {
-        printChartAsTable(textContent, mainREGEXasb, subREGEX1, subREGEX2, subREGEX3, document.getElementById("asb2_result"), document.getElementById("asb2_chart1"));
-        printChartAsTable(textContent, mainREGEXdd, subREGEX1, subREGEX2, subREGEX3, document.getElementById("dd2_result"), document.getElementById("dd2_chart1"));
-        printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("ydna2_result"), document.getElementById("ydna2_chart1"));
-        printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, document.getElementById("mtdna2_result"), document.getElementById("mtdna2_chart1"));
+        printChartAsTable(textContent, mainREGEXasb, subREGEX1, subREGEX2, subREGEX3, "asb2");
+        printChartAsTable(textContent, mainREGEXdd, subREGEX1, subREGEX2, subREGEX3, "dd2");
+        printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, "ydna2");
+        printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, "mtdna2");
       }
 
-      mainREGEXsm=/refreshFunctionGlobeHaplo.?\(samplemax\) \{[\s\S]*?\]\;/g;
+      var mainREGEXsm = new RegExp('refreshFunctionGlobeHaplo' + kitNumber + '\\(samplemax\\) \\{[\\s\\S]*?\]\\;', "g");
       subREGEX1sm=/title[\s\S]*?\,/g;
       subREGEX2sm=/title\"\:\s?\"Sample\s?match\s?\#/g;
       subREGEX3sm=/\"\,\,|\"\,/g;
@@ -297,15 +347,15 @@
       cancTableHeader="Name,GD";
 
       if (col == 1) {
-        printSmallListAsTable(textContent, mainREGEXcanc, subREGEX1canc, subREGEX2canc, subREGEX3canc, subREGEX4canc, subREGEX5canc, document.getElementById("canc1_result"), cancTableHeader);
-        printSmallListAsTable(textContent, mainREGEXcmod, subREGEX1cmod, subREGEX2cmod, subREGEX3cmod, subREGEX4cmod, subREGEX5cmod, document.getElementById("cmod1_result"), cmodTableHeader);
-        printListAsTable(textContent, smMatchNo, mainREGEXsm, subREGEX1sm, subREGEX2sm, subREGEX3sm, subREGEX4sm, subREGEX5sm, subREGEX6sm, document.getElementById("sm1_result"), smTableHeader);
-        printListAsTable(textContent, ddarMatchNo, mainREGEXddar, subREGEX1ddar, subREGEX2ddar, subREGEX3ddar, subREGEX4ddar, subREGEX5ddar, subREGEX6ddar, document.getElementById("ddar1_result"), ddarTableHeader);
+        printSmallListAsTable(textContent, mainREGEXcanc, subREGEX1canc, subREGEX2canc, subREGEX3canc, subREGEX4canc, subREGEX5canc, "canc1", cancTableHeader);
+        printSmallListAsTable(textContent, mainREGEXcmod, subREGEX1cmod, subREGEX2cmod, subREGEX3cmod, subREGEX4cmod, subREGEX5cmod, "cmod1", cmodTableHeader);
+        printListAsTable(textContent, smMatchNo, mainREGEXsm, subREGEX1sm, subREGEX2sm, subREGEX3sm, subREGEX4sm, subREGEX5sm, subREGEX6sm, "sm1", smTableHeader);
+        printListAsTable(textContent, ddarMatchNo, mainREGEXddar, subREGEX1ddar, subREGEX2ddar, subREGEX3ddar, subREGEX4ddar, subREGEX5ddar, subREGEX6ddar, "ddar1", ddarTableHeader);
       } else {
-        printSmallListAsTable(textContent, mainREGEXcanc, subREGEX1canc, subREGEX2canc, subREGEX3canc, subREGEX4canc, subREGEX5canc, document.getElementById("canc2_result"), cancTableHeader);
-        printSmallListAsTable(textContent, mainREGEXcmod, subREGEX1cmod, subREGEX2cmod, subREGEX3cmod, subREGEX4cmod, subREGEX5cmod, document.getElementById("cmod2_result"), cmodTableHeader);
-        printListAsTable(textContent, smMatchNo, mainREGEXsm, subREGEX1sm, subREGEX2sm, subREGEX3sm, subREGEX4sm, subREGEX5sm, subREGEX6sm, document.getElementById("sm2_result"), smTableHeader);
-        printListAsTable(textContent, ddarMatchNo, mainREGEXddar, subREGEX1ddar, subREGEX2ddar, subREGEX3ddar, subREGEX4ddar, subREGEX5ddar, subREGEX6ddar, document.getElementById("ddar2_result"), ddarTableHeader);
+        printSmallListAsTable(textContent, mainREGEXcanc, subREGEX1canc, subREGEX2canc, subREGEX3canc, subREGEX4canc, subREGEX5canc, "canc2", cancTableHeader);
+        printSmallListAsTable(textContent, mainREGEXcmod, subREGEX1cmod, subREGEX2cmod, subREGEX3cmod, subREGEX4cmod, subREGEX5cmod, "cmod2", cmodTableHeader);
+        printListAsTable(textContent, smMatchNo, mainREGEXsm, subREGEX1sm, subREGEX2sm, subREGEX3sm, subREGEX4sm, subREGEX5sm, subREGEX6sm, "sm2", smTableHeader);
+        printListAsTable(textContent, ddarMatchNo, mainREGEXddar, subREGEX1ddar, subREGEX2ddar, subREGEX3ddar, subREGEX4ddar, subREGEX5ddar, subREGEX6ddar, "ddar2", ddarTableHeader);
       }
     }
 
@@ -319,104 +369,135 @@
       <input type="file" style="width:400" ACCEPT="text/html" onchange="openFileFunction(event,2)" />
     </div>
   </div>
+  <div class="row">
+    <div class="column">
+      <p>Kit: (<b id="kit1_name"></b>)[<b id="kit1_number"></b>]</p>
+    </div>
+    <div class="column">
+      <p>Kit: (<b id="kit2_name"></b>)[<b id="kit2_number"></b>]</p>
+    </div>
+  </div>
+
 
   <hr>
 
   <div class="row" id="asb">
     <h3 class="header" style="display:none">Ancient Samples Full Breakdown</h3>
     <div class="column">
+      <div id="asb1_buttons"></div>
       <div id="asb1_chart1"></div>
       <div id="asb1_result"></div>
     </div>
     <div class="column">
+      <div id="asb2_buttons"></div>
       <div id="asb2_chart1"></div>
       <div id="asb2_result"></div>
     </div>
   </div>
 
+  <hr class="header" style="display:none">
+
   <div class="row" id="dd">
     <h3 class="header" style="display:none">Deep Dive Full Breakdown</h3>
     <div class="column">
+      <div id="dd1_buttons"></div>
       <div id="dd1_chart1"></div>
       <div id="dd1_result"></div>
     </div>
     <div class="column">
+      <div id="dd2_buttons"></div>
       <div id="dd2_chart1"></div>
       <div id="dd2_result"></div>
     </div>
   </div>
 
+  <hr class="header" style="display:none">
+
   <div class="row" id="canc">
     <h3 class="header" style="display:none">Closest Ancient Populations</h3>
     <div class="column">
+      <div id="canc1_buttons"></div>
       <div id="canc1_result"></div>
     </div>
     <div class="column">
+      <div id="canc2_buttons"></div>
       <div id="canc2_result"></div>
     </div>
   </div>
 
+  <hr class="header" style="display:none">
+
   <div class="row" id="cmod">
     <h3 class="header" style="display:none">Closest Modern Populations</h3>
     <div class="column">
+      <div id="cmod1_buttons"></div>
       <div id="cmod1_result"></div>
     </div>
     <div class="column">
+      <div id="cmod2_buttons"></div>
       <div id="cmod2_result"></div>
     </div>
   </div>
 
+  <hr class="header" style="display:none">
+
   <div class="row" id="ydna">
     <h3 class="header" style="display:none">Y-DNA Breakdown</h3>
     <div class="column">
+      <div id="ydna1_buttons"></div>
       <div id="ydna1_chart1"></div>
       <div id="ydna1_result"></div>
     </div>
     <div class="column">
+      <div id="ydna2_buttons"></div>
       <div id="ydna2_chart1"></div>
       <div id="ydna2_result"></div>
     </div>
   </div>
 
+  <hr class="header" style="display:none">
+
   <div class="row" id="mtdna">
     <h3 class="header" style="display:none">mtDNA Breakdown</h3>
     <div class="column">
+      <div id="mtdna1_buttons"></div>
       <div id="mtdna1_chart1"></div>
       <div id="mtdna1_result"></div>
     </div>
     <div class="column">
+      <div id="mtdna2_buttons"></div>
       <div id="mtdna2_chart1"></div>
       <div id="mtdna2_result"></div>
     </div>
   </div>
 
+  <hr class="header" style="display:none">
+
   <div class="row" id="sm">
     <h3 class="header" style="display:none">The Closest Archaeogenetic matches</h3>
     <div class="column">
+      <div id="sm1_buttons"></div>
       <div id="sm1_result"></div>
     </div>
     <div class="column">
+      <div id="sm2_buttons"></div>
       <div id="sm2_result"></div>
     </div>
   </div>
 
+  <hr class="header" style="display:none">
+
   <div class="row" id="ddar">
     <h3 class="header" style="display:none">Deep Dive - Ancient Relatives</h3>
     <div class="column">
+      <div id="ddar1_buttons"></div>
       <div id="ddar1_result"></div>
     </div>
     <div class="column">
+      <div id="ddar2_buttons"></div>
       <div id="ddar2_result"></div>
     </div>
   </div>
 
-  <div class="row" id="test_div_main">
-    <div class="column">
-      <div id="test_div"></div>
-    </div>
-    <div class="column">
-      <div id="test_div2"></div>
-    </div>
-  </div>
    </body>
 </html>
