@@ -5,7 +5,7 @@ This solution was developed for MyTrueAncestry.com users, to get raw data from t
 
 ## Workflow
 ![Workflow](images/workflow.png)
-1. Login to MyTrueAncestry.com and download the website in html format
+1. Login to MyTrueAncestry.com, select one kit and download the website in html format
 2. Open the https://oci.atomx.hu website in your browser
 3. Open the downloaded file(s)
 4. You'll get results immediately in your browser
