@@ -14,6 +14,7 @@ This solution was developed for MyTrueAncestry.com users, to get raw data from t
 - get "**Ancient Samples Full Breakdown**", "**Deep Dive Full Breakdown**", "**Y-DNA Breakdown**" and "**mtDNA Breakdown**" data and display it as a table and chart
 - display "**Closest Ancient Populations**", "**Closest Modern Populations**", "**The Closest Archaeogenetic matches**" and "**Deep Dive - Ancient Relatives**" as a table
 - display two results side-by-side to support comparison
+- download tables in csv or charts in png format 
 
 ## Website
 The website is available at https://oci.atomx.hu
