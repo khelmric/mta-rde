@@ -134,6 +134,22 @@
       return textContent;
     }
 
+    function listBigDataTransform(textContent, mREGEX, sREGEX1, sREGEX2, sREGEX3, sREGEX4, sREGEX5) {
+      textContent = textContent.match(mREGEX);
+      textContent = String(textContent);
+      textContent = textContent.match(sREGEX1);
+      textContent = String(textContent);
+      textContent = textContent.replace(sREGEX2, '');
+      textContent = String(textContent);
+      textContent = textContent.replace(sREGEX3, '');
+      textContent = String(textContent);
+      textContent = textContent.replace(sREGEX4, '');
+      textContent = String(textContent);
+      textContent = textContent.replace(sREGEX5, ',');
+      textContent = String(textContent);
+      return textContent;
+    }
+
     function getKitData(textContent, target, mREGEX, sREGEX1) {
       textContent = textContent.match(mREGEX);
       textContent = String(textContent);
@@ -142,9 +158,21 @@
       kitContent = textContent.split('"');
       targetNameDiv = document.getElementById(target + '_name');
       targetNumberDiv = document.getElementById(target + '_number');
-      targetNameDiv.innerHTML=kitContent[1];
-      targetNumberDiv.innerHTML=kitContent[0];
+      targetNameDiv.innerHTML = kitContent[1];
+      targetNumberDiv.innerHTML = kitContent[0];
       return kitContent[0];
+    }
+
+    function getKitDate(textContent, kitNumber, target) {
+      var mREGEX = new RegExp('info_[\\S]*?_' + kitNumber + '[\\s\\S]*?Processed[\\s\\S]*?\\)', "");
+      textContent = textContent.match(mREGEX);
+      textContent = String(textContent);
+      textContent = textContent.replace(/[\s\S]*?Processed/, '');
+      textContent = String(textContent);
+      textContent = textContent.replace(/\([\s\S]*?\)/, '');
+      textContent = String(textContent);
+      targetDiv = document.getElementById(target + '_date');
+      targetDiv.innerHTML = textContent;
     }
 
     function printChartAsTable(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, target) {
@@ -236,6 +264,48 @@
 
     }
 
+    function printBigListAsTable(textContent, arrayNamesText, mainREGEX, subREGEX2, subREGEX3, subREGEX4, subREGEX5, target, tableHeader) {
+      arrayNames = arrayNamesText.split(',');
+
+      for (var i = 0; i < arrayNames.length; i++) {
+        var subREGEX1 = new RegExp(arrayNames[i] + '\=\{[\\s\\S]*?\}', "");
+        listContent = listBigDataTransform(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5);
+        listContentLineArray[i] = listContent.split(',');
+      }
+
+      var data = new google.visualization.DataTable();
+
+      tableDivId = document.getElementById(target + '_result');
+      buttonsDivId = document.getElementById(target + '_buttons');
+
+      headersArray = tableHeader.split(',');
+      for (var i = 0; i < headersArray.length; i++) {
+        data.addColumn('string', headersArray[i]);
+      }
+
+        for (var j = 0; j < listContentLineArray[0].length; j++) {
+        var rowContent = "";
+          for (var k = 0; k < headersArray.length; k++) {
+            cleanVar = listContentLineArray[k][j].replace(/\<br\>|\'/g, '');
+            if (rowContent) {
+              rowContent += ", '" + cleanVar + "'";
+            } else {
+              rowContent = "data.addRow(['" + cleanVar + "'";
+            }
+          }
+        rowContent += "]);";
+        eval(rowContent);
+        }
+
+      var table = new google.visualization.Table(tableDivId);
+      table.draw(data, {showRowNumber: true, width: '100%', height: '100%', allowHtml: true});
+
+      // Prepare and display download buttons
+      var csvContent = google.visualization.dataTableToCsv(data);
+      var csvData = new Blob([csvContent]);
+      buttonsDivId.innerHTML = '<a href=\"' + URL.createObjectURL(csvData) + '\" download=\"data.csv\" type=\"text/csv\"><button type=\"button\">\&\#8681\; .csv</button></a>';
+    }
+
     function printListAsTable(textContent, matchNo, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5, subREGEX6, target, tableHeader) {
       listContent = listDataTransform(textContent, matchNo, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5, subREGEX6);
       listContentLineArray = listContent.split(';');
@@ -288,6 +358,7 @@
       mainREGEXkit=/Kit\:.*show.*\<\/a\>/;
       subREGEX1kit=/.*id\=\"name|\ onclick[\s\S]*?\>|\<\/a\>/g;
       var kitNumber = getKitData(textContent, kitDivInfo, mainREGEXkit, subREGEX1kit);
+      getKitDate(textContent, kitNumber, kitDivInfo);
 
       // Get ASB, DD, Y-DNA and mtDNA data from html text
       var mainREGEXasb = new RegExp('refreshFunctionChartAncient' + kitNumber + '\\(jobid\\) \\{[\\s\\S]*?\\}', "g");
@@ -346,16 +417,27 @@
       subREGEX5canc=/\(|^,|,$|\s+/g;
       cancTableHeader="Name,GD";
 
+      var mainREGEXhaploExp = new RegExp('document.getElementById\\(\\"nav-haploexpYdd-tab' + kitNumber + '[\\s\\S]*?function processData\\(data\\) \\{', "");
+      arrayListHaploExp = 'name_map,age_map,score_map,arch_map,y_map,x_map';
+      haploExpHeader = "Name,Age,Score,Arch,Y-DNA,mtDNA";
+      subREGEXhaploExp2 = /\}\;[\s\S]*?/g; // to remove
+      subREGEXhaploExp3 = /Y-DNA\:\s?|mtDNA\:\s?|[\S]*?\"\:\"/g; // to remove
+      subREGEXhaploExp4 = /\"|\}/g; // to remove
+      subREGEXhaploExp5 = /\,\s*/g; // to replace with comma
+       
+
       if (col == 1) {
         printSmallListAsTable(textContent, mainREGEXcanc, subREGEX1canc, subREGEX2canc, subREGEX3canc, subREGEX4canc, subREGEX5canc, "canc1", cancTableHeader);
         printSmallListAsTable(textContent, mainREGEXcmod, subREGEX1cmod, subREGEX2cmod, subREGEX3cmod, subREGEX4cmod, subREGEX5cmod, "cmod1", cmodTableHeader);
         printListAsTable(textContent, smMatchNo, mainREGEXsm, subREGEX1sm, subREGEX2sm, subREGEX3sm, subREGEX4sm, subREGEX5sm, subREGEX6sm, "sm1", smTableHeader);
         printListAsTable(textContent, ddarMatchNo, mainREGEXddar, subREGEX1ddar, subREGEX2ddar, subREGEX3ddar, subREGEX4ddar, subREGEX5ddar, subREGEX6ddar, "ddar1", ddarTableHeader);
+        printBigListAsTable(textContent, arrayListHaploExp, mainREGEXhaploExp, subREGEXhaploExp2, subREGEXhaploExp3, subREGEXhaploExp4, subREGEXhaploExp5, "haploexp1", haploExpHeader);
       } else {
         printSmallListAsTable(textContent, mainREGEXcanc, subREGEX1canc, subREGEX2canc, subREGEX3canc, subREGEX4canc, subREGEX5canc, "canc2", cancTableHeader);
         printSmallListAsTable(textContent, mainREGEXcmod, subREGEX1cmod, subREGEX2cmod, subREGEX3cmod, subREGEX4cmod, subREGEX5cmod, "cmod2", cmodTableHeader);
         printListAsTable(textContent, smMatchNo, mainREGEXsm, subREGEX1sm, subREGEX2sm, subREGEX3sm, subREGEX4sm, subREGEX5sm, subREGEX6sm, "sm2", smTableHeader);
         printListAsTable(textContent, ddarMatchNo, mainREGEXddar, subREGEX1ddar, subREGEX2ddar, subREGEX3ddar, subREGEX4ddar, subREGEX5ddar, subREGEX6ddar, "ddar2", ddarTableHeader);
+        printBigListAsTable(textContent, arrayListHaploExp, mainREGEXhaploExp, subREGEXhaploExp2, subREGEXhaploExp3, subREGEXhaploExp4, subREGEXhaploExp5, "haploexp2", haploExpHeader);
       }
     }
 
@@ -371,10 +453,10 @@
   </div>
   <div class="row">
     <div class="column">
-      <p>Kit: (<b id="kit1_name"></b>)[<b id="kit1_number"></b>]</p>
+      <p class="header" style="display:none">Kit: [<b id="kit1_number"></b>] <b id="kit1_name"></b> (<b id="kit1_date"></b>)</p>
     </div>
     <div class="column">
-      <p>Kit: (<b id="kit2_name"></b>)[<b id="kit2_number"></b>]</p>
+      <p class="header" style="display:none">Kit: [<b id="kit2_number"></b>] <b id="kit2_name"></b> (<b id="kit2_date"></b>)</p>
     </div>
   </div>
 
@@ -496,6 +578,20 @@
     <div class="column">
       <div id="ddar2_buttons"></div>
       <div id="ddar2_result"></div>
+    </div>
+  </div>
+
+  <hr class="header" style="display:none">
+
+  <div class="row" id="haploexp">
+    <h3 class="header" style="display:none">All Samples</h3>
+    <div class="column">
+      <div id="haploexp1_buttons"></div>
+      <div id="haploexp1_result"></div>
+    </div>
+    <div class="column">
+      <div id="haploexp2_buttons"></div>
+      <div id="haploexp2_result"></div>
     </div>
   </div>
 
