@@ -104,6 +104,13 @@ hr {
   height: max-content !important;
 }
 
+.dl-button {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: block !important;
+  text-align: center !important;
+}
+
 #topButton {
   display: none;
   position: fixed;

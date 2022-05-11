@@ -62,6 +62,15 @@
 
 
    <script>
+var arrayAsb1;
+var arrayDd1;
+var arrayYdna1;
+var arrayMtdna1;
+var arrayAsb2;
+var arrayDd2;
+var arrayYdna2;
+var arrayMtdna2;
+
      function helpHuFunction() {
        var divhelphu = document.getElementById("helpHu");
        var divhelpen = document.getElementById("helpEn");
@@ -175,20 +184,23 @@
       targetDiv.innerHTML = textContent;
     }
 
-    function printChartAsTable(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, target) {
+    function printChartAsTable(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, target, col) {
+
+      var dataArray = [];
+
       chartLabels = chartDataTransform(textContent, mainREGEX, subREGEX1);
       chartLabelArray = chartLabels.split(',');
 
-      tableDivId = document.getElementById(target + '_result');
-      chart1DivId = document.getElementById(target + '_chart1');
-      buttonsDivId = document.getElementById(target + '_buttons');
+      targetDiv = target + col;
+      tableDivId = document.getElementById(targetDiv + '_result');
+      chart1DivId = document.getElementById(targetDiv + '_chart1');
+      buttonsDivId = document.getElementById(targetDiv + '_buttons');
 
       chartData = chartDataTransform(textContent, mainREGEX, subREGEX2);
       chartDataArray = chartData.split(',');
 
       chartBgColor = chartDataTransform(textContent, mainREGEX, subREGEX3);
       chartBgColorArray = chartBgColor.split(',');
-
       var data = new google.visualization.DataTable();
 
       data.addColumn('string', 'Description');
@@ -201,7 +213,14 @@
           dataValueAsInt = dataValueAsInt + '0';
         }
         dataValueAsInt = parseInt(dataValueAsInt.replace(/\./, ''));
-        var rowContent = 'data.addRow([chartLabelArray[i], {v: ' + dataValueAsInt + ', f: "' + chartDataArray[i] + '"}, {v: null, f: null, p: {style: "background-color: ' + chartBgColorArray[i] + ';"}}]);';
+
+        dataArray[i] = [];
+        dataArray[i][0] = chartLabelArray[i];
+        dataArray[i][1] = chartDataArray[i];
+        dataArray[i][2] = dataValueAsInt;
+        dataArray[i][3] = chartBgColorArray[i];
+
+        var rowContent = 'data.addRow([chartLabelArray[i], {v: ' + dataValueAsInt + ', f: "' + chartDataArray[i] + '"}, {v: "' + chartBgColorArray[i] + '", f: null, p: {style: "background-color: ' + chartBgColorArray[i] + ';"}}]);';
         eval(rowContent);
       }
       var table = new google.visualization.Table(tableDivId);
@@ -210,9 +229,12 @@
       var chart1 = new google.visualization.PieChart(chart1DivId);
       chart1.draw(data, {
           width: '600', 
-          height: '500',
+          height: '300',
           colors: chartBgColorArray,
           is3D: true,
+          chartArea: {
+            height: '96%'
+          },
           legend: {
             textStyle: {
               fontSize: 9
@@ -224,6 +246,8 @@
       var csvContent = google.visualization.dataTableToCsv(data);
       var csvData = new Blob([csvContent]);
       buttonsDivId.innerHTML = '<a href=\"' + chart1.getImageURI() + '\" download=\"chart.png\"> <button type=\"button\">\&\#8681\; .png</button></a>' + '<a href=\"' + URL.createObjectURL(csvData) + '\" download=\"data.csv\" type=\"text/csv\"><button type=\"button\">\&\#8681\; .csv</button></a>';
+
+      return dataArray;
     }
 
     function printSmallListAsTable(textContent, mainREGEX, subREGEX1, subREGEX2, subREGEX3, subREGEX4, subREGEX5, target, tableHeader) {
@@ -342,8 +366,70 @@
       var csvData = new Blob([csvContent]);
       buttonsDivId.innerHTML = '<a href=\"' + URL.createObjectURL(csvData) + '\" download=\"data.csv\" type=\"text/csv\"><button type=\"button\">\&\#8681\; .csv</button></a>';
     }
+
+    function printComboChart(dataArray1, dataArray2, target) {
+      if (dataArray1 !== null && dataArray2 !== null && typeof dataArray1 !== 'undefined' && typeof dataArray2 !== 'undefined') {
+      chartDivId = document.getElementById(target + '_chart');
+      buttonsDivId = document.getElementById(target + '_buttons');
+
+        var kit1name = document.getElementById('kit1_name');
+        var kit1date = document.getElementById('kit1_date');
+        var kit2name = document.getElementById('kit2_name');
+        var kit2date = document.getElementById('kit2_date');
+        var chartData = "['Name','" + kit1name.textContent + "-" + kit1date.textContent + "', '" + kit2name.textContent + "-" + kit2date.textContent + "']";
+        var row = "";
+
+        var foundInData1 = [];
+        for (var i = 0; i < dataArray1.length; i++) {
+          var foundData2Match = false;
+          for (var j = 0; j < dataArray2.length; j++) {
+            if ( dataArray2[j].includes(dataArray1[i][0]) && (foundData2Match == false)) {
+              const matchingData = (element) => element == dataArray1[i][0];
+              var data2index = dataArray2[j].findIndex(matchingData);
+              chartData += ",['" + dataArray1[i][0] + "', " + dataArray1[i][2] / 100 + ", " + dataArray2[j][2] / 100 + "]";
+              foundData2Match = true;
+              foundInData1[j] = true;
+            }
+          }
+          if ( foundData2Match == false ) {
+             chartData += ",['" + dataArray1[i][0] + "', " + dataArray1[i][2] / 100 + ", 0]";          
+          }
+        }
+        for (var i = 0; i < dataArray2.length; i++) {
+          if (foundInData1[i] == null || typeof foundInData1[i] == 'undefined') {
+            chartData += ",['" + dataArray2[i][0] + "', 0, " + dataArray2[i][2] / 100 + "]";
+          }
+        }
+      
+        eval ("var data = google.visualization.arrayToDataTable([" + chartData + "])");
+
+            var options = {
+               orientation:'vertical',
+               vAxis: { showTextEvery:1 },
+               seriesType: 'bars',
+               width: '900',
+               height: '650',
+               fontSize: 11,
+               chartArea: {
+                 height: '86%'
+               },
+            };
+
+            var chart = new google.visualization.ComboChart(chartDivId);
+            chart.draw(data, options);
+
+      // Prepare and display download buttons
+      buttonsDivId.innerHTML = '<a href=\"' + chart.getImageURI() + '\" download=\"chart.png\"> <button type=\"button\">\&\#8681\; .png</button></a>'
+
+      }
+    }
  
     async function openFileFunction(event,col) {
+      // define arrays
+      var arrayAsb = [];
+      var arrayDd = [];
+      var arrayYdna = [];
+      var arrayMtdna = [];
 
       for (let el of document.querySelectorAll('.header')) el.style.display = 'block';
       const selectedFile = event.target.files.item(0);
@@ -369,17 +455,23 @@
       subREGEX2=/data[\s\S]*?\]/g;
       subREGEX3=/backgroundColor[\s\S]*?\]/g;
 
+      // Print Charts and Tables
       if (col == 1) {
-        printChartAsTable(textContent, mainREGEXasb, subREGEX1, subREGEX2, subREGEX3, "asb1");
-        printChartAsTable(textContent, mainREGEXdd, subREGEX1, subREGEX2, subREGEX3, "dd1");
-        printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, "ydna1");
-        printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, "mtdna1");
+        arrayAsb1 = printChartAsTable(textContent, mainREGEXasb, subREGEX1, subREGEX2, subREGEX3, "asb", col);
+        arrayDd1 = printChartAsTable(textContent, mainREGEXdd, subREGEX1, subREGEX2, subREGEX3, "dd", col);
+        arrayYdna1 = printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, "ydna", col);
+        arrayMtdna1 = printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, "mtdna", col);
       } else {
-        printChartAsTable(textContent, mainREGEXasb, subREGEX1, subREGEX2, subREGEX3, "asb2");
-        printChartAsTable(textContent, mainREGEXdd, subREGEX1, subREGEX2, subREGEX3, "dd2");
-        printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, "ydna2");
-        printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, "mtdna2");
-      }
+        arrayAsb2 = printChartAsTable(textContent, mainREGEXasb, subREGEX1, subREGEX2, subREGEX3, "asb", col);
+        arrayDd2 = printChartAsTable(textContent, mainREGEXdd, subREGEX1, subREGEX2, subREGEX3, "dd", col);
+        arrayYdna2 = printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, "ydna", col);
+        arrayMtdna2 = printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, "mtdna", col);
+      } 
+
+printComboChart (arrayAsb1, arrayAsb2, "asb_combo");
+printComboChart (arrayDd1, arrayDd2, "dd_combo");
+printComboChart (arrayYdna1, arrayYdna2, "ydna_combo");
+printComboChart (arrayMtdna1, arrayMtdna2, "mtdna_combo");
 
       var mainREGEXsm = new RegExp('refreshFunctionGlobeHaplo' + kitNumber + '\\(samplemax\\) \\{[\\s\\S]*?\]\\;', "g");
       subREGEX1sm=/title[\s\S]*?\,/g;
@@ -445,10 +537,10 @@
 
   <div class="row">
     <div class="column">
-      <input type="file" style="width:400" ACCEPT="text/html" onchange="openFileFunction(event,1)" />
+      <input type="file" class="input_button" style="width:400" ACCEPT="text/html" onchange="openFileFunction(event,1)" />
     </div>
     <div class="column">
-      <input type="file" style="width:400" ACCEPT="text/html" onchange="openFileFunction(event,2)" />
+      <input type="file" class="input_button" style="width:400" ACCEPT="text/html" onchange="openFileFunction(event,2)" />
     </div>
   </div>
   <div class="row">
@@ -462,19 +554,23 @@
 
 
   <hr>
-
   <div class="row" id="asb">
     <h3 class="header" style="display:none">Ancient Samples Full Breakdown</h3>
     <div class="column">
-      <div id="asb1_buttons"></div>
+      <div id="asb1_buttons" class="dl-button"></div>
       <div id="asb1_chart1"></div>
       <div id="asb1_result"></div>
     </div>
     <div class="column">
-      <div id="asb2_buttons"></div>
+      <div id="asb2_buttons" class="dl-button"></div>
       <div id="asb2_chart1"></div>
       <div id="asb2_result"></div>
     </div>
+  </div>
+  <div class="row" id="asb_combo">
+      <div id="asb_combo_buttons" class="dl-button"></div>
+      <div id="asb_combo_chart"></div>
+      <div id="asb_combo_result"></div>
   </div>
 
   <hr class="header" style="display:none">
@@ -482,15 +578,20 @@
   <div class="row" id="dd">
     <h3 class="header" style="display:none">Deep Dive Full Breakdown</h3>
     <div class="column">
-      <div id="dd1_buttons"></div>
+      <div id="dd1_buttons" class="dl-button"></div>
       <div id="dd1_chart1"></div>
       <div id="dd1_result"></div>
     </div>
     <div class="column">
-      <div id="dd2_buttons"></div>
+      <div id="dd2_buttons" class="dl-button"></div>
       <div id="dd2_chart1"></div>
       <div id="dd2_result"></div>
     </div>
+  </div>
+  <div class="row" id="dd_combo">
+      <div id="dd_combo_buttons" class="dl-button"></div>
+      <div id="dd_combo_chart"></div>
+      <div id="dd_combo_result"></div>
   </div>
 
   <hr class="header" style="display:none">
@@ -498,11 +599,11 @@
   <div class="row" id="canc">
     <h3 class="header" style="display:none">Closest Ancient Populations</h3>
     <div class="column">
-      <div id="canc1_buttons"></div>
+      <div id="canc1_buttons" class="dl-button"></div>
       <div id="canc1_result"></div>
     </div>
     <div class="column">
-      <div id="canc2_buttons"></div>
+      <div id="canc2_buttons" class="dl-button"></div>
       <div id="canc2_result"></div>
     </div>
   </div>
@@ -512,11 +613,11 @@
   <div class="row" id="cmod">
     <h3 class="header" style="display:none">Closest Modern Populations</h3>
     <div class="column">
-      <div id="cmod1_buttons"></div>
+      <div id="cmod1_buttons" class="dl-button"></div>
       <div id="cmod1_result"></div>
     </div>
     <div class="column">
-      <div id="cmod2_buttons"></div>
+      <div id="cmod2_buttons" class="dl-button"></div>
       <div id="cmod2_result"></div>
     </div>
   </div>
@@ -526,15 +627,20 @@
   <div class="row" id="ydna">
     <h3 class="header" style="display:none">Y-DNA Breakdown</h3>
     <div class="column">
-      <div id="ydna1_buttons"></div>
+      <div id="ydna1_buttons" class="dl-button"></div>
       <div id="ydna1_chart1"></div>
       <div id="ydna1_result"></div>
     </div>
     <div class="column">
-      <div id="ydna2_buttons"></div>
+      <div id="ydna2_buttons" class="dl-button"></div>
       <div id="ydna2_chart1"></div>
       <div id="ydna2_result"></div>
     </div>
+  </div>
+  <div class="row" id="ydna_combo">
+      <div id="ydna_combo_buttons" class="dl-button"></div>
+      <div id="ydna_combo_chart"></div>
+      <div id="ydna_combo_result"></div>
   </div>
 
   <hr class="header" style="display:none">
@@ -542,15 +648,20 @@
   <div class="row" id="mtdna">
     <h3 class="header" style="display:none">mtDNA Breakdown</h3>
     <div class="column">
-      <div id="mtdna1_buttons"></div>
+      <div id="mtdna1_buttons" class="dl-button"></div>
       <div id="mtdna1_chart1"></div>
       <div id="mtdna1_result"></div>
     </div>
     <div class="column">
-      <div id="mtdna2_buttons"></div>
+      <div id="mtdna2_buttons" class="dl-button"></div>
       <div id="mtdna2_chart1"></div>
       <div id="mtdna2_result"></div>
     </div>
+  </div>
+  <div class="row" id="mtdna_combo">
+      <div id="mtdna_combo_buttons" class="dl-button"></div>
+      <div id="mtdna_combo_chart"></div>
+      <div id="mtdna_combo_result"></div>
   </div>
 
   <hr class="header" style="display:none">
@@ -558,11 +669,11 @@
   <div class="row" id="sm">
     <h3 class="header" style="display:none">The Closest Archaeogenetic matches</h3>
     <div class="column">
-      <div id="sm1_buttons"></div>
+      <div id="sm1_buttons" class="dl-button"></div>
       <div id="sm1_result"></div>
     </div>
     <div class="column">
-      <div id="sm2_buttons"></div>
+      <div id="sm2_buttons" class="dl-button"></div>
       <div id="sm2_result"></div>
     </div>
   </div>
@@ -572,11 +683,11 @@
   <div class="row" id="ddar">
     <h3 class="header" style="display:none">Deep Dive - Ancient Relatives</h3>
     <div class="column">
-      <div id="ddar1_buttons"></div>
+      <div id="ddar1_buttons" class="dl-button"></div>
       <div id="ddar1_result"></div>
     </div>
     <div class="column">
-      <div id="ddar2_buttons"></div>
+      <div id="ddar2_buttons" class="dl-button"></div>
       <div id="ddar2_result"></div>
     </div>
   </div>
