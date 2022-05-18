@@ -17,27 +17,70 @@
    <h2>MyTrueAncestry - Raw Data Extractor</h3>
    <button onclick="helpEnFunction()">Help (En)</button>
    <button onclick="helpHuFunction()">Help (Hu)</button>
+   <button onclick="optionsFunction()" id="viewOptionsButton" disabled="true">View</button>
    <button onClick="window.open('https://github.com/khelmric/mta-rde');"> 
      <span>Code Repo on Github</span>
    </button>
 
    <div id="helpEn" style="display:none">
-     <ol>
-       <li>Login to <a href="https://mytrueancestry.com">https://mytrueancestry.com</a>.</li>
-       <li>Select one Kit. (If All Kits are selected only the first will be investigated.)</li>
-       <li>Save the webpage in html format.</li>
-       <li>On the <a href="http://oci.atomx.hu/mta-rde">http://oci.atomx.hu/mta-rde</a> select the html file(s). 
+     <section class="fieldset">
+       <h1>How to use</h1>
+       <ol>
+         <li>Login to <a href="https://mytrueancestry.com">https://mytrueancestry.com</a>.</li>
+         <li>Select one Kit. (If All Kits are selected only the first will be investigated.)</li>
+         <li>Save the webpage in html format.</li>
+         <li>On the <a href="http://oci.atomx.hu/mta-rde">http://oci.atomx.hu/mta-rde</a> select the html file(s). 
            (Selecting the second file allows a comparsion of two results.)</li>
-     </ol>   
+       </ol>   
+     </section>
    </div>
    <div id="helpHu" style="display:none">
-     <ol>
-       <li>Jelentkezz be a <a href="https://mytrueancestry.com">https://mytrueancestry.com</a> oldalra.</li>
-       <li>Válassz ki egy Kit-et. Az összes Kit kijelölése esetén csak az elsőt vizsgálja a program.</li>
-       <li>Mentsd le a weboldalt html formátumban.</li>
-       <li>A <a href="http://oci.atomx.hu/mta-rde">http://oci.atomx.hu/mta-rde</a> oldalon válaszd ki a html fájlt/fájlokat. 
+     <section class="fieldset">
+       <h1>Használati útmutató</h1>
+       <ol>
+         <li>Jelentkezz be a <a href="https://mytrueancestry.com">https://mytrueancestry.com</a> oldalra.</li>
+         <li>Válassz ki egy Kit-et. Az összes Kit kijelölése esetén csak az elsőt vizsgálja a program.</li>
+         <li>Mentsd le a weboldalt html formátumban.</li>
+         <li>A <a href="http://oci.atomx.hu/mta-rde">http://oci.atomx.hu/mta-rde</a> oldalon válaszd ki a html fájlt/fájlokat. 
            (A második fájl kiválasztásával összehasonlítható két különböző eredmény.)</li>
-     </ol>
+       </ol>
+     </section>
+   </div>
+   <div id="viewOptions" style="display:none">
+         <br>
+         <section class="fieldset">
+           <h2>Results</h2>
+             <input type="checkbox" id="asb-block" onchange="toggleByClass(this)" checked="true" />
+             <label for="showAsb">Ancient Samples Full Breakdown</label><br>
+             <input type="checkbox" id="dd-block" onchange="toggleByClass(this)" checked="true" />
+             <label for="showDd">Deep Dive Full Breakdown</label><br>
+             <input type="checkbox" id="canc-block" onchange="toggleByClass(this)" checked="true" />
+             <label for="showCant">Closest Ancient Populations</label><br>
+             <input type="checkbox" id="cmod-block" onchange="toggleByClass(this)" checked="true" />
+             <label for="showCmod">Closest Modern Populations</label><br>
+             <input type="checkbox" id="ydna-block" onchange="toggleByClass(this)" checked="true" />
+             <label for="showYdna">Y-DNA Breakdown</label><br>
+             <input type="checkbox" id="mtdna-block" onchange="toggleByClass(this)" checked="true" />
+             <label for="showMtdna">mtDNA Breakdown</label><br>
+             <input type="checkbox" id="sm-block" onchange="toggleByClass(this)" checked="true" />
+             <label for="showSm">The Closest Archaeogenetic matches</label><br>
+             <input type="checkbox" id="ddar-block" onchange="toggleByClass(this)" checked="true" />
+             <label for="showDdar">Deep Dive - Ancient Relatives</label><br>
+             <input type="checkbox" id="haploexp-block" onchange="toggleByClass(this)" checked="true" />
+             <label for="showHaploexp">All Samples</label><br>
+         </section>
+         <br>
+         <section class="fieldset">
+           <h2>Fields</h2>
+             <input type="checkbox" id="dl-button" onchange="toggleByClass(this)" checked="true" />
+             <label for="showCharts">Buttons</label><br>
+             <input type="checkbox" id="result-chart" onchange="toggleByClass(this)" checked="true" />
+             <label for="showCharts">Charts</label><br>
+             <input type="checkbox" id="result-table" onchange="toggleByClass(this)" checked="true" />
+             <label for="showTables">Tables</label><br>
+             <input type="checkbox" id="comparison-row" onchange="toggleByClass(this)" checked="true" />
+             <label for="showComparison">Comparison</label><br>
+         </section>
    </div>
 
   <script>
@@ -62,20 +105,22 @@
 
 
    <script>
-var arrayAsb1;
-var arrayDd1;
-var arrayYdna1;
-var arrayMtdna1;
-var arrayAsb2;
-var arrayDd2;
-var arrayYdna2;
-var arrayMtdna2;
+     var arrayAsb1;
+     var arrayDd1;
+     var arrayYdna1;
+     var arrayMtdna1;
+     var arrayAsb2;
+     var arrayDd2;
+     var arrayYdna2;
+     var arrayMtdna2;
 
      function helpHuFunction() {
        var divhelphu = document.getElementById("helpHu");
        var divhelpen = document.getElementById("helpEn");
+       var divViewOptions = document.getElementById("viewOptions");
        if (divhelphu.style.display === "none") {
          divhelphu.style.display = "block";
+         divViewOptions.style.display = "none";
          divhelpen.style.display = "none"
        } else {
          divhelphu.style.display = "none";
@@ -84,13 +129,40 @@ var arrayMtdna2;
      function helpEnFunction() {
        var divhelphu = document.getElementById("helpHu");
        var divhelpen = document.getElementById("helpEn");
+       var divViewOptions = document.getElementById("viewOptions");
        if (divhelpen.style.display === "none") {
          divhelpen.style.display = "block";
+         divViewOptions.style.display = "none";
          divhelphu.style.display = "none"
        } else {
          divhelpen.style.display = "none";
        }
      }
+     function optionsFunction() {
+       var divhelphu = document.getElementById("helpHu");
+       var divhelpen = document.getElementById("helpEn");
+       var divViewOptions = document.getElementById("viewOptions");
+       if (divViewOptions.style.display === "none") {
+         divViewOptions.style.display = "block";
+         divhelpen.style.display = "none";
+         divhelphu.style.display = "none"
+       } else {
+         divViewOptions.style.display = "none";
+       }
+     }
+
+    function toggleByClass(checkbox) {
+      var displaySetting = "";
+      if (checkbox.checked) {
+        displaySetting = "block";
+      } else {
+        displaySetting = "none";
+      }
+      var targets = document.getElementsByClassName(checkbox.id);
+      for(var i = 0; i < targets.length; ++i){
+        targets[i].style.display = displaySetting;
+      }
+    }
 
     function chartDataTransform(textContent, mREGEX, sREGEX) {
       textContent = textContent.match(mREGEX);
@@ -432,6 +504,7 @@ var arrayMtdna2;
       var arrayMtdna = [];
 
       for (let el of document.querySelectorAll('.header')) el.style.display = 'block';
+      document.getElementById('viewOptionsButton').disabled = false;
       const selectedFile = event.target.files.item(0);
       textContent = await selectedFile.text();
 
@@ -468,10 +541,11 @@ var arrayMtdna2;
         arrayMtdna2 = printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, "mtdna", col);
       } 
 
-printComboChart (arrayAsb1, arrayAsb2, "asb_combo");
-printComboChart (arrayDd1, arrayDd2, "dd_combo");
-printComboChart (arrayYdna1, arrayYdna2, "ydna_combo");
-printComboChart (arrayMtdna1, arrayMtdna2, "mtdna_combo");
+      // Print Comparison Charts and Tables
+      printComboChart (arrayAsb1, arrayAsb2, "asb_combo");
+      printComboChart (arrayDd1, arrayDd2, "dd_combo");
+      printComboChart (arrayYdna1, arrayYdna2, "ydna_combo");
+      printComboChart (arrayMtdna1, arrayMtdna2, "mtdna_combo");
 
       var mainREGEXsm = new RegExp('refreshFunctionGlobeHaplo' + kitNumber + '\\(samplemax\\) \\{[\\s\\S]*?\]\\;', "g");
       subREGEX1sm=/title[\s\S]*?\,/g;
@@ -553,156 +627,166 @@ printComboChart (arrayMtdna1, arrayMtdna2, "mtdna_combo");
   </div>
 
 
-  <hr>
-  <div class="row" id="asb">
-    <h3 class="header" style="display:none">Ancient Samples Full Breakdown</h3>
-    <div class="column">
-      <div id="asb1_buttons" class="dl-button"></div>
-      <div id="asb1_chart1"></div>
-      <div id="asb1_result"></div>
+  <div class="asb-block">
+    <div class="row" id="asb">
+      <hr class="header" style="display:none">
+      <h3 class="header" style="display:none">Ancient Samples Full Breakdown</h3>
+      <div class="column">
+        <div id="asb1_buttons" class="dl-button"></div>
+        <div id="asb1_chart1" class="result-chart"></div>
+        <div id="asb1_result" class="result-table"></div>
+      </div>
+      <div class="column">
+        <div id="asb2_buttons" class="dl-button"></div>
+        <div id="asb2_chart1" class="result-chart"></div>
+        <div id="asb2_result" class="result-table"></div>
+      </div>
     </div>
-    <div class="column">
-      <div id="asb2_buttons" class="dl-button"></div>
-      <div id="asb2_chart1"></div>
-      <div id="asb2_result"></div>
-    </div>
-  </div>
-  <div class="row" id="asb_combo">
-      <div id="asb_combo_buttons" class="dl-button"></div>
-      <div id="asb_combo_chart"></div>
-      <div id="asb_combo_result"></div>
-  </div>
-
-  <hr class="header" style="display:none">
-
-  <div class="row" id="dd">
-    <h3 class="header" style="display:none">Deep Dive Full Breakdown</h3>
-    <div class="column">
-      <div id="dd1_buttons" class="dl-button"></div>
-      <div id="dd1_chart1"></div>
-      <div id="dd1_result"></div>
-    </div>
-    <div class="column">
-      <div id="dd2_buttons" class="dl-button"></div>
-      <div id="dd2_chart1"></div>
-      <div id="dd2_result"></div>
-    </div>
-  </div>
-  <div class="row" id="dd_combo">
-      <div id="dd_combo_buttons" class="dl-button"></div>
-      <div id="dd_combo_chart"></div>
-      <div id="dd_combo_result"></div>
-  </div>
-
-  <hr class="header" style="display:none">
-
-  <div class="row" id="canc">
-    <h3 class="header" style="display:none">Closest Ancient Populations</h3>
-    <div class="column">
-      <div id="canc1_buttons" class="dl-button"></div>
-      <div id="canc1_result"></div>
-    </div>
-    <div class="column">
-      <div id="canc2_buttons" class="dl-button"></div>
-      <div id="canc2_result"></div>
+    <div class="comparison-row" id="asb_combo">
+        <div id="asb_combo_buttons" class="dl-button"></div>
+        <div id="asb_combo_chart"></div>
+        <div id="asb_combo_result"></div>
     </div>
   </div>
 
-  <hr class="header" style="display:none">
-
-  <div class="row" id="cmod">
-    <h3 class="header" style="display:none">Closest Modern Populations</h3>
-    <div class="column">
-      <div id="cmod1_buttons" class="dl-button"></div>
-      <div id="cmod1_result"></div>
+  <div class="dd-block">
+    <div class="row" id="dd">
+      <hr class="header" style="display:none">
+      <h3 class="header" style="display:none">Deep Dive Full Breakdown</h3>
+      <div class="column">
+        <div id="dd1_buttons" class="dl-button"></div>
+        <div id="dd1_chart1" class="result-chart"></div>
+        <div id="dd1_result" class="result-table"></div>
+      </div>
+      <div class="column">
+        <div id="dd2_buttons" class="dl-button"></div>
+        <div id="dd2_chart1" class="result-chart"></div>
+        <div id="dd2_result" class="result-table"></div>
+      </div>
     </div>
-    <div class="column">
-      <div id="cmod2_buttons" class="dl-button"></div>
-      <div id="cmod2_result"></div>
-    </div>
-  </div>
-
-  <hr class="header" style="display:none">
-
-  <div class="row" id="ydna">
-    <h3 class="header" style="display:none">Y-DNA Breakdown</h3>
-    <div class="column">
-      <div id="ydna1_buttons" class="dl-button"></div>
-      <div id="ydna1_chart1"></div>
-      <div id="ydna1_result"></div>
-    </div>
-    <div class="column">
-      <div id="ydna2_buttons" class="dl-button"></div>
-      <div id="ydna2_chart1"></div>
-      <div id="ydna2_result"></div>
-    </div>
-  </div>
-  <div class="row" id="ydna_combo">
-      <div id="ydna_combo_buttons" class="dl-button"></div>
-      <div id="ydna_combo_chart"></div>
-      <div id="ydna_combo_result"></div>
-  </div>
-
-  <hr class="header" style="display:none">
-
-  <div class="row" id="mtdna">
-    <h3 class="header" style="display:none">mtDNA Breakdown</h3>
-    <div class="column">
-      <div id="mtdna1_buttons" class="dl-button"></div>
-      <div id="mtdna1_chart1"></div>
-      <div id="mtdna1_result"></div>
-    </div>
-    <div class="column">
-      <div id="mtdna2_buttons" class="dl-button"></div>
-      <div id="mtdna2_chart1"></div>
-      <div id="mtdna2_result"></div>
-    </div>
-  </div>
-  <div class="row" id="mtdna_combo">
-      <div id="mtdna_combo_buttons" class="dl-button"></div>
-      <div id="mtdna_combo_chart"></div>
-      <div id="mtdna_combo_result"></div>
-  </div>
-
-  <hr class="header" style="display:none">
-
-  <div class="row" id="sm">
-    <h3 class="header" style="display:none">The Closest Archaeogenetic matches</h3>
-    <div class="column">
-      <div id="sm1_buttons" class="dl-button"></div>
-      <div id="sm1_result"></div>
-    </div>
-    <div class="column">
-      <div id="sm2_buttons" class="dl-button"></div>
-      <div id="sm2_result"></div>
+    <div class="comparison-row" id="dd_combo">
+        <div id="dd_combo_buttons" class="dl-button"></div>
+        <div id="dd_combo_chart"></div>
+        <div id="dd_combo_result"></div>
     </div>
   </div>
 
-  <hr class="header" style="display:none">
-
-  <div class="row" id="ddar">
-    <h3 class="header" style="display:none">Deep Dive - Ancient Relatives</h3>
-    <div class="column">
-      <div id="ddar1_buttons" class="dl-button"></div>
-      <div id="ddar1_result"></div>
-    </div>
-    <div class="column">
-      <div id="ddar2_buttons" class="dl-button"></div>
-      <div id="ddar2_result"></div>
+  <div class="canc-block">
+    <div class="row" id="canc">
+      <hr class="header" style="display:none">
+      <h3 class="header" style="display:none">Closest Ancient Populations</h3>
+      <div class="column">
+        <div id="canc1_buttons" class="dl-button"></div>
+        <div id="canc1_result" class="result-table"></div>
+      </div>
+      <div class="column">
+        <div id="canc2_buttons" class="dl-button"></div>
+        <div id="canc2_result" class="result-table"></div>
+      </div>
     </div>
   </div>
 
-  <hr class="header" style="display:none">
-
-  <div class="row" id="haploexp">
-    <h3 class="header" style="display:none">All Samples</h3>
-    <div class="column">
-      <div id="haploexp1_buttons"></div>
-      <div id="haploexp1_result"></div>
+  <div class="cmod-block">
+    <div class="row" id="cmod">
+      <hr class="header" style="display:none">
+      <h3 class="header" style="display:none">Closest Modern Populations</h3>
+      <div class="column">
+        <div id="cmod1_buttons" class="dl-button"></div>
+        <div id="cmod1_result" class="result-table"></div>
+      </div>
+      <div class="column">
+        <div id="cmod2_buttons" class="dl-button"></div>
+        <div id="cmod2_result" class="result-table"></div>
+      </div>
     </div>
-    <div class="column">
-      <div id="haploexp2_buttons"></div>
-      <div id="haploexp2_result"></div>
+  </div>
+
+  <div class="ydna-block">
+    <div class="row" id="ydna">
+      <hr class="header" style="display:none">
+      <h3 class="header" style="display:none">Y-DNA Breakdown</h3>
+      <div class="column">
+        <div id="ydna1_buttons" class="dl-button"></div>
+        <div id="ydna1_chart1" class="result-chart"></div>
+        <div id="ydna1_result" class="result-table"></div>
+      </div>
+      <div class="column">
+        <div id="ydna2_buttons" class="dl-button"></div>
+        <div id="ydna2_chart1" class="result-chart"></div>
+        <div id="ydna2_result" class="result-table"></div>
+      </div>
+    </div>
+    <div class="comparison-row" id="ydna_combo">
+        <div id="ydna_combo_buttons" class="dl-button"></div>
+        <div id="ydna_combo_chart"></div>
+        <div id="ydna_combo_result"></div>
+    </div>
+  </div>
+
+  <div class="mtdna-block">
+    <div class="row" id="mtdna">
+      <hr class="header" style="display:none">
+      <h3 class="header" style="display:none">mtDNA Breakdown</h3>
+      <div class="column">
+        <div id="mtdna1_buttons" class="dl-button"></div>
+        <div id="mtdna1_chart1" class="result-chart"></div>
+        <div id="mtdna1_result" class="result-table"></div>
+      </div>
+      <div class="column">
+        <div id="mtdna2_buttons" class="dl-button"></div>
+        <div id="mtdna2_chart1" class="result-chart"></div>
+        <div id="mtdna2_result" class="result-table"></div>
+      </div>
+    </div>
+    <div class="comparison-row" id="mtdna_combo">
+        <div id="mtdna_combo_buttons" class="dl-button"></div>
+        <div id="mtdna_combo_chart"></div>
+        <div id="mtdna_combo_result"></div>
+    </div>
+  </div>
+
+  <div class="sm-block">
+    <div class="row" id="sm">
+      <hr class="header" style="display:none">
+      <h3 class="header" style="display:none">The Closest Archaeogenetic matches</h3>
+      <div class="column">
+        <div id="sm1_buttons" class="dl-button"></div>
+        <div id="sm1_result" class="result-table"></div>
+      </div>
+      <div class="column">
+        <div id="sm2_buttons" class="dl-button"></div>
+        <div id="sm2_result" class="result-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ddar-block">
+    <div class="row" id="ddar">
+      <hr class="header" style="display:none">
+      <h3 class="header" style="display:none">Deep Dive - Ancient Relatives</h3>
+      <div class="column">
+        <div id="ddar1_buttons" class="dl-button"></div>
+        <div id="ddar1_result" class="result-table"></div>
+      </div>
+      <div class="column">
+        <div id="ddar2_buttons" class="dl-button"></div>
+        <div id="ddar2_result" class="result-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="haploexp-block">
+    <div class="row" id="haploexp">
+      <hr class="header" style="display:none">
+      <h3 class="header" style="display:none">All Samples</h3>
+      <div class="column">
+        <div id="haploexp1_buttons" class="dl-button"></div>
+        <div id="haploexp1_result" class="result-table"></div>
+      </div>
+      <div class="column">
+        <div id="haploexp2_buttons" class="dl-button"></div>
+        <div id="haploexp2_result" class="result-table"></div>
+      </div>
     </div>
   </div>
 
