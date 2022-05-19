@@ -18,6 +18,10 @@
    <button onclick="helpEnFunction()">Help (En)</button>
    <button onclick="helpHuFunction()">Help (Hu)</button>
    <button onclick="optionsFunction()" id="viewOptionsButton" disabled="true">View</button>
+   <input type='radio' name='languague' id='langEN' checked>
+   <label for="langEN">English</label>
+   <input type='radio' name='languague' id='langHU'>
+   <label for="langHU">Magyar</label>
    <button onClick="window.open('https://github.com/khelmric/mta-rde');"> 
      <span>Code Repo on Github</span>
    </button>
@@ -113,6 +117,10 @@
      var arrayDd2;
      var arrayYdna2;
      var arrayMtdna2;
+     var civHu = "Ausztrál őslakos,Andalusz,Alánok,Alemannok,Észak-Amerika bennszülött népei,Amoriták,Ókori egyiptomiak,Ókori görögök,Aquitániaiak,Alaszkai athabaszkaiak,Avarok,Azték Birodalom,Balari,Balti törzsek,Bantu népek,Belga törzsek,Boi,Szindhi Brahmin-dinasztia,Kelta Britonok,Bizánci Birodalom,Kánaániták és szemiták,Kantabriaiak,Karthágóiak,Kelták,Keltibérek,Kelta Brigantesek,Kelta Cantiusok,Kelta Corieltauvi,Kelta Dobunni,Kelta Dumnonii,Kelta Durotriges,Kelta Parisi,Kelta Votadini,Chola-dinasztia,Cimmeriek,Dacians,Daunii,Korai szlávok,Etruszkok,Frankok,Frízek,Gallo-rómaiak,Gallok,Gepidák,Ghaznavid-dinasztia,Görög-Baktri Királyság,Guancsok,Han dinasztia,Hellén rómaiak,Venétek,Hettiták,Hunok,Ősmagyarok,Ibériaiak,Illírek,Inkák,Iolaes,Jomon,Jütök,Karkota Birodalom,Khoisan,Kijevi Rusz,Latinok,Licchavi Királyság,Ligurok,Longobárdok,Luzitánok,Makuriaiak,Markomannok,Maurja Birodalom,Maják,Minósziak,Az Arany Horda,Mórok,Özeliek,Osi törzs,Osztrogótok,Oszmánok,Pannon Illírek,Filiszteusok,Föníciaiak,Piktek,Pontiuszi Birodalom,Pyu Királyságok,Kvádok,Rhaeti,Rómaiak,Római Hispania,Zsuanzsuanok,Rugiak,Safavid-dinasztia,Szakák,Szamniszok,Szarmaták,Szászok,Szkordiszkuszok,Szkíták,Szeleukida Birodalom,Trákok,Türingek,Tokugawa sógunátus,Vandálok,Baszkok,Vikingek,Dán vikingek,Izlandi vikingek,Norvég vikingek,Svéd vikingek,Vizigótok,Yayoi,Joruba népek,Egyéb";
+     var civEn = "Aboriginal Australian,Al-Andalus,Alans,Alemanni,Indigenous Peoples of North America,Amorites,Ancient Egyptians,Ancient Greeks,Aquitani,Alaskan Athabaskans,Avars,Aztec Empire,Balari,Baltic Tribes,Bantu Peoples,Belgae,Boii,Brahmin Dynasty of Sindh,Celtic Britons,Byzantine Empire,Canaanites and Semites,Cantabrians,Carthaginians,Celts,Celtiberians,Celtic Brigantes,Celtic Cantiaci,Celtic Corieltavi,Celtic Dobunni,Celtic Dumnonii,Celtic Durotriges,Celtic Parisi,Celtic Votadini,Chola Dynasty,Cimmerians,Dákok,Daunii,Early Slavs,Etruscans,Franks,Frisii,Gallo-Romans,Gauls,Gepids,Ghaznavid Dynasty,Greco-Bactrian Kingdom,Guanches,Han Dynasty,Hellenic Romans,Heneti,Hittites,Huns,Proto-Hungarians,Iberians,Illyrians,Incans,Iolaes,Jomon,Jutes,Karkota Empire,Khoisan,Kievan Rus,Latins,Licchavi Kingdom,Ligurians,Longobards,Lusitanians,Makurian,Marcomanni,Maurya Empire,Mayans,Minoans,The Golden Horde,Moors,Oeselians,Osi Tribe,Ostrogoths,Ottomans,Pannonian Illyrians,Philistines,Phoenicians,Picts,Pontic Empire,Pyu Kingdoms,Quadi,Rhaeti,Romans,Roman Hispania,Rouran Khaganate,Rugii,Safavid Dynasty,Saka,Samnites,Sarmatians,Saxons,Scordisci,Scythians,Seleucid Empire,Thracians,Thuringii,Tokugawa Shogunate,Vandals,Vascones,Vikings,Danish Vikings,Vikings (Icelandic),Norwegian Vikings,Vikings (Swedish),Visigoths,Yayoi,Yoruba Peoples,Other";
+     var civHuNames = civHu.split(',');
+     var civEnNames = civEn.split(',');
 
      function helpHuFunction() {
        var divhelphu = document.getElementById("helpHu");
@@ -286,13 +294,23 @@
         }
         dataValueAsInt = parseInt(dataValueAsInt.replace(/\./, ''));
 
+        if(document.getElementById('langHU').checked) {
+          var chartLabel = civHuNames[civEnNames.indexOf(chartLabelArray[i])];
+        } else {
+          var chartLabel = chartLabelArray[i];
+        }
+
+        if (chartLabel == null || chartLabel == 'undefined') {
+          chartLabel = chartLabelArray[i];
+        }
+
         dataArray[i] = [];
-        dataArray[i][0] = chartLabelArray[i];
+        dataArray[i][0] = chartLabel;
         dataArray[i][1] = chartDataArray[i];
         dataArray[i][2] = dataValueAsInt;
         dataArray[i][3] = chartBgColorArray[i];
 
-        var rowContent = 'data.addRow([chartLabelArray[i], {v: ' + dataValueAsInt + ', f: "' + chartDataArray[i] + '"}, {v: "' + chartBgColorArray[i] + '", f: null, p: {style: "background-color: ' + chartBgColorArray[i] + ';"}}]);';
+        var rowContent = 'data.addRow([{v: "' + chartLabel + '", f: "' + chartLabel +  ' (' + chartDataArray[i] + '%)"}, {v: ' + dataValueAsInt + ', f: "' + chartDataArray[i] + '"}, {v: "' + chartBgColorArray[i] + '", f: null, p: {style: "background-color: ' + chartBgColorArray[i] + ';"}}]);';
         eval(rowContent);
       }
       var table = new google.visualization.Table(tableDivId);
@@ -300,8 +318,8 @@
  
       var chart1 = new google.visualization.PieChart(chart1DivId);
       chart1.draw(data, {
-          width: '800', 
-          height: '450',
+          width: '900', 
+          height: '400',
           colors: chartBgColorArray,
           is3D: true,
           chartArea: {
@@ -309,7 +327,7 @@
           },
           legend: {
             textStyle: {
-              fontSize: 9
+              fontSize: 10
             }
           }
       });
