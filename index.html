@@ -109,6 +109,7 @@
 
 
    <script>
+     var colorMap = new Map();
      var arrayAsb1;
      var arrayDd1;
      var arrayYdna1;
@@ -309,6 +310,7 @@
         dataArray[i][1] = chartDataArray[i];
         dataArray[i][2] = dataValueAsInt;
         dataArray[i][3] = chartBgColorArray[i];
+        colorMap.set(chartLabel, chartBgColorArray[i]);
 
         var rowContent = 'data.addRow([{v: "' + chartLabel + '", f: "' + chartLabel +  ' (' + chartDataArray[i] + '%)"}, {v: ' + dataValueAsInt + ', f: "' + chartDataArray[i] + '"}, {v: "' + chartBgColorArray[i] + '", f: null, p: {style: "background-color: ' + chartBgColorArray[i] + ';"}}]);';
         eval(rowContent);
@@ -457,6 +459,142 @@
       buttonsDivId.innerHTML = '<a href=\"' + URL.createObjectURL(csvData) + '\" download=\"data.csv\" type=\"text/csv\"><button type=\"button\">\&\#8681\; .csv</button></a>';
     }
 
+    function printDiffPieChart(dataArray1, dataArray2, target) {
+      if (dataArray1 !== null && dataArray2 !== null && typeof dataArray1 !== 'undefined' && typeof dataArray2 !== 'undefined') {
+      chartDivId = document.getElementById(target + '_chart');
+      buttonsDivId = document.getElementById(target + '_buttons');
+
+        var kit1name = document.getElementById('kit1_name');
+        var kit1date = document.getElementById('kit1_date');
+        var kit2name = document.getElementById('kit2_name');
+        var kit2date = document.getElementById('kit2_date');
+        kit1date = String(kit1date.textContent);
+        var kit1dateShort = kit1date.replace(/[\S]*?[\s]?$/,'');
+        kit2date = String(kit2date.textContent);
+        var kit2dateShort = kit2date.replace(/[\S]*?[\s]?$/,'');
+
+        var label1 = "'" + kit1name.textContent + kit1dateShort + "'";
+        var label2 = "'" + kit2name.textContent + kit2dateShort + "'";
+
+        var chartData1 = "['Name','Value']";
+        var chartData2 = "['Name','Value']";
+        var row = ""
+        var chartArray1 =[];
+        var chartArray2 =[];
+        var notFoundInData1 = [];
+        var notFoundInData2 = [];
+
+        for (var i = 0; i < dataArray1.length; i++) {
+          var foundData2Match = false;
+          for (var j = 0; j < dataArray2.length; j++) {
+            if ( dataArray2[j].includes(dataArray1[i][0]) && (foundData2Match == false)) {
+              foundData2Match = true;
+            }
+          }
+          chartArray1.push("['" + dataArray1[i][0] + "', " + dataArray1[i][2] / 100 + "]");
+          if ( foundData2Match == false ) {
+             chartArray2.push("['" + dataArray1[i][0] + "', 0]");
+          }
+        }
+
+        for (var i = 0; i < dataArray2.length; i++) {
+          var foundData1Match = false;
+          for (var j = 0; j < dataArray1.length; j++) {
+            if ( dataArray1[j].includes(dataArray2[i][0]) && (foundData1Match == false)) {
+              foundData1Match = true;
+            }
+          }
+          chartArray2.push("['" + dataArray2[i][0] + "', " + dataArray2[i][2] / 100 + "]");
+          if ( foundData1Match == false ) {
+             chartArray1.push("['" + dataArray2[i][0] + "', 0]");
+          }
+        }
+
+        chartData1 += notFoundInData1;
+        chartData2 += notFoundInData2;
+
+        chartArray1.sort();
+        chartArray2.sort();
+        var colorArray = "";
+        for (var i = 0; i < chartArray1.length; i++) {
+          var civName = chartArray1[i];
+          civName = String(civName);
+          civName = civName.replace(/^[\s\S]*?\'/, '');
+          civName = String(civName);
+          civName = civName.replace(/\'[\s\S]*?$/, '');
+          civName = String(civName);
+          if ( i < chartArray1.length-1 ) {
+            colorArray += "'" + colorMap.get(civName).toLowerCase() + "', ";
+          } else {
+            colorArray += "'" + colorMap.get(civName).toLowerCase() + "'";
+          }
+
+          // Add values to label 
+          var chartData1Value = chartArray1[i].replace(/^[\s\S]*?\,\ /, '');
+          chartData1Value = String(chartData1Value);
+          chartData1Value = chartData1Value.replace(/]/, '');
+          chartData1Value = String(chartData1Value);
+          var chartData2Value = chartArray2[i].replace(/^[\s\S]*?\,\ /, '');
+          chartData2Value = String(chartData2Value);
+          chartData2Value = chartData2Value.replace(/]/, '');
+          chartData2Value = String(chartData2Value);
+          var chartDataValues = " [" + chartData1Value + "%, " + chartData2Value + "%]";          
+
+          chartData1 += "," + chartArray1[i].replace(/\'\,/,chartDataValues + "\'\,") ;
+          chartData2 += "," + chartArray2[i].replace(/\'\,/,chartDataValues + "\'\,") ;
+        }
+        colorArray = '[' + colorArray +  ']';
+        eval ("var oldData = google.visualization.arrayToDataTable([" + chartData1 + "])");
+        eval ("var newData = google.visualization.arrayToDataTable([" + chartData2 + "])");
+
+            var options = {
+               title: 'Diff-Chart (\u25CF:' + label2 + ',\u29BF:' + label1 + ')',
+               titleTextStyle: {
+                 fontSize: 18,
+                 bold: true
+               },
+               pieSliceText: 'none',
+               sliceVisibilityThreshold: 0,
+               colors: eval(colorArray),
+               diff: {
+                 oldData: {
+                   opacity: 1,
+                   tooltip:{
+                     prefix: ' '
+                   }
+                 },
+                 newData: {
+                   opacity: 1,
+                   widthFactor: 1,
+                   tooltip:{
+                     prefix: '  '
+                   }
+                 },
+                 innerCircle: { 
+                   borderFactor: 0.05
+                 }
+               },
+               width: '900',
+               height: '780',
+               is3D: true,
+               fontSize: 11,
+            };
+
+            var chartDiff = new google.visualization.PieChart(chartDivId);
+            var diffData = chartDiff.computeDiff(oldData, newData);
+            chartDiff.draw(diffData, options);
+
+//            var chartDiff = new google.visualization.BarChart(chartDivId);
+//            var diffData = chartDiff.computeDiff(data1, data2);
+//            chartDiff.draw(diffData, options);
+
+      // Prepare and display download buttons
+      buttonsDivId.innerHTML = '<a href=\"' + chartDiff.getImageURI() + '\" download=\"chart.png\"> <button type=\"button\">\&\#8681\; .png</button></a>'
+
+      }
+    }
+
+
     function printComboChart(dataArray1, dataArray2, target) {
       if (dataArray1 !== null && dataArray2 !== null && typeof dataArray1 !== 'undefined' && typeof dataArray2 !== 'undefined') {
       chartDivId = document.getElementById(target + '_chart');
@@ -558,6 +696,12 @@
         arrayYdna2 = printChartAsTable(textContent, mainREGEXydna, subREGEX1, subREGEX2, subREGEX3, "ydna", col);
         arrayMtdna2 = printChartAsTable(textContent, mainREGEXmtdna, subREGEX1, subREGEX2, subREGEX3, "mtdna", col);
       } 
+
+      // Print Diff-Charts
+      printDiffPieChart (arrayAsb1, arrayAsb2, "asb_diffpie");
+      printDiffPieChart (arrayDd1, arrayDd2, "dd_diffpie");
+      printDiffPieChart (arrayYdna1, arrayYdna2, "ydna_diffpie");
+      printDiffPieChart (arrayMtdna1, arrayMtdna2, "mtdna_diffpie");
 
       // Print Comparison Charts and Tables
       printComboChart (arrayAsb1, arrayAsb2, "asb_combo");
@@ -665,6 +809,11 @@
         <div id="asb_combo_chart"></div>
         <div id="asb_combo_result"></div>
     </div>
+    <div class="comparison-row" id="asb_diffpie">
+        <div id="asb_diffpie_buttons" class="dl-button"></div>
+        <div id="asb_diffpie_chart"></div>
+        <div id="asb_diffpie_result"></div>
+    </div>
   </div>
 
   <div class="dd-block">
@@ -686,6 +835,11 @@
         <div id="dd_combo_buttons" class="dl-button"></div>
         <div id="dd_combo_chart"></div>
         <div id="dd_combo_result"></div>
+    </div>
+    <div class="comparison-row" id="dd_diffpie">
+        <div id="dd_diffpie_buttons" class="dl-button"></div>
+        <div id="dd_diffpie_chart"></div>
+        <div id="dd_diffpie_result"></div>
     </div>
   </div>
 
@@ -739,6 +893,11 @@
         <div id="ydna_combo_chart"></div>
         <div id="ydna_combo_result"></div>
     </div>
+    <div class="comparison-row" id="ydna_diffpie">
+        <div id="ydna_diffpie_buttons" class="dl-button"></div>
+        <div id="ydna_diffpie_chart"></div>
+        <div id="ydna_diffpie_result"></div>
+    </div>
   </div>
 
   <div class="mtdna-block">
@@ -760,6 +919,11 @@
         <div id="mtdna_combo_buttons" class="dl-button"></div>
         <div id="mtdna_combo_chart"></div>
         <div id="mtdna_combo_result"></div>
+    </div>
+    <div class="comparison-row" id="mtdna_diffpie">
+        <div id="mtdna_diffpie_buttons" class="dl-button"></div>
+        <div id="mtdna_diffpie_chart"></div>
+        <div id="mtdna_diffpie_result"></div>
     </div>
   </div>
 
