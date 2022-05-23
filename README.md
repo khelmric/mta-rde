@@ -6,7 +6,7 @@ This solution was developed for MyTrueAncestry.com users, to get raw data from t
 ## Workflow
 ![Workflow](images/workflow.png)
 1. Login to MyTrueAncestry.com, select one kit and download the website in html format
-2. Open the https://oci.atomx.hu website in your browser
+2. Open the https://storage.googleapis.com/atomx-website-mta-rde/index.html website in your browser
 3. Open the downloaded file(s)
 4. You'll get results immediately in your browser
 
@@ -17,14 +17,14 @@ This solution was developed for MyTrueAncestry.com users, to get raw data from t
 - download tables in csv or charts in png format 
 
 ## Website
-The website is available at https://oci.atomx.hu
+The website is available at https://storage.googleapis.com/atomx-website-mta-rde/index.html
 
 ## Sample Results
 ### Ancient Samples Full Breakdown
 ![asfb](images/Screenshot_asfb.png)
 ### Deep Dive Full Breakdown
 ![ddfb](images/Screenshot_ddfb.png)
-### Closest Ancient abd Modern Populations
+### Closest Ancient and Modern Populations
 ![ca](images/Screenshot_ca.png)
 ### Y-DNA Breakdown
 ![ydna](images/Screenshot_ydna.png)
