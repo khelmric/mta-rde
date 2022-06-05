@@ -3,7 +3,6 @@
    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
    <head>
      <link rel="stylesheet" href="style.css">
-     <meta charset="UTF-8">
    </head>
 
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -460,9 +459,22 @@
       buttonsDivId.innerHTML = '<a href=\"' + URL.createObjectURL(csvData) + '\" download=\"data.csv\" type=\"text/csv\"><button type=\"button\">\&\#8681\; .csv</button></a>';
     }
 
+    function indexOfArray(array2d, itemtofind) {
+      var row;
+      var searchTest = "'" + itemtofind + "',";
+      for (var i = 0; i < array2d.length; i++) {
+        if (array2d[i].includes(itemtofind)) {
+          row = i;
+        }
+      }
+      row = parseInt(row);
+      return row;
+    }
+
     function printDiffPieChart(dataArray1, dataArray2, target) {
       if (dataArray1 !== null && dataArray2 !== null && typeof dataArray1 !== 'undefined' && typeof dataArray2 !== 'undefined') {
       chartDivId = document.getElementById(target + '_chart');
+      chartDivAnnotationId = target + '_chart_annotation';
       buttonsDivId = document.getElementById(target + '_buttons');
 
         var kit1name = document.getElementById('kit1_name');
@@ -474,8 +486,8 @@
         kit2date = String(kit2date.textContent);
         var kit2dateShort = kit2date.replace(/[\S]*?[\s]?$/,'');
 
-        var label1 = "'" + kit1name.textContent + kit1dateShort + "'";
-        var label2 = "'" + kit2name.textContent + kit2dateShort + "'";
+        var label1 = kit1name.textContent + kit1dateShort;
+        var label2 = kit2name.textContent + kit2dateShort;
 
         var chartData1 = "['Name','Value']";
         var chartData2 = "['Name','Value']";
@@ -514,8 +526,8 @@
         chartData1 += notFoundInData1;
         chartData2 += notFoundInData2;
 
-        chartArray1.sort();
-        chartArray2.sort();
+//        chartArray1.sort();
+//        chartArray2.sort();
         var colorArray = "";
         for (var i = 0; i < chartArray1.length; i++) {
           var civName = chartArray1[i];
@@ -530,30 +542,33 @@
             colorArray += "'" + colorMap.get(civName).toLowerCase() + "'";
           }
 
-          // Add values to label 
+          // Add values to label
+          var index = indexOfArray(chartArray2,civName);
           var chartData1Value = chartArray1[i].replace(/^[\s\S]*?\,\ /, '');
           chartData1Value = String(chartData1Value);
           chartData1Value = chartData1Value.replace(/]/, '');
           chartData1Value = String(chartData1Value);
-          var chartData2Value = chartArray2[i].replace(/^[\s\S]*?\,\ /, '');
+          var chartData2Value = chartArray2[index].replace(/^[\s\S]*?\,\ /, '');
           chartData2Value = String(chartData2Value);
           chartData2Value = chartData2Value.replace(/]/, '');
           chartData2Value = String(chartData2Value);
-          var chartDataValues = " [" + chartData1Value + "%, " + chartData2Value + "%]";          
 
-          chartData1 += "," + chartArray1[i].replace(/\'\,/,chartDataValues + "\'\,") ;
-          chartData2 += "," + chartArray2[i].replace(/\'\,/,chartDataValues + "\'\,") ;
+          var chartDataValues1 = " [" + chartData1Value + "%, " + chartData2Value + "%]";
+          var chartDataValues2 = " [" + chartData1Value + "%, " + chartData2Value + "%]";
+var tempChartData1 = chartArray1[i].replace(/\'\,/,chartDataValues1 + "\'\,");
+var tempChartData2 = chartArray2[index].replace(/\'\,/,chartDataValues2 + "\'\,");
+//tempChartData1 = tempChartData1.replace(/\]$/,", " + annotation1 + "]");
+//tempChartData2 = tempChartData2.replace(/\]$/,", " + annotation2 + "]");
+
+          chartData1 += "," + tempChartData1;
+          chartData2 += "," + tempChartData2;
+
         }
-        colorArray = '[' + colorArray +  ']';
+        colorArray = '[' + colorArray + ']';
         eval ("var oldData = google.visualization.arrayToDataTable([" + chartData1 + "])");
         eval ("var newData = google.visualization.arrayToDataTable([" + chartData2 + "])");
 
             var options = {
-               title: 'Diff-Chart (\u25CF:' + label2 + ',\u29BF:' + label1 + ')',
-               titleTextStyle: {
-                 fontSize: 18,
-                 bold: true
-               },
                pieSliceText: 'none',
                sliceVisibilityThreshold: 0,
                colors: eval(colorArray),
@@ -582,13 +597,26 @@
             };
 
             var chartDiff = new google.visualization.PieChart(chartDivId);
-            var diffData = chartDiff.computeDiff(oldData, newData);
+            var diffData = chartDiff.computeDiff(newData, oldData);
             chartDiff.draw(diffData, options);
 
 //            var chartDiff = new google.visualization.BarChart(chartDivId);
 //            var diffData = chartDiff.computeDiff(data1, data2);
 //            chartDiff.draw(diffData, options);
-
+      // Draw lines and labels
+      var canvas = document.getElementById(chartDivAnnotationId);
+      var annotationCanvas = canvas.getContext("2d");
+      annotationCanvas.clearRect(0, 0, canvas.width, canvas.height);
+      annotationCanvas.font = "12px Arial";
+      annotationCanvas.fillText(label1,42,20);
+      annotationCanvas.moveTo(40,20);
+      annotationCanvas.lineTo(0,60);
+      annotationCanvas.stroke();
+      annotationCanvas.font = "12px Arial";
+      annotationCanvas.fillText(label2,42,40);
+      annotationCanvas.moveTo(40,40);
+      annotationCanvas.lineTo(0,128);
+      annotationCanvas.stroke();
       // Prepare and display download buttons
       buttonsDivId.innerHTML = '<a href=\"' + chartDiff.getImageURI() + '\" download=\"chart.png\"> <button type=\"button\">\&\#8681\; .png</button></a>'
 
@@ -812,7 +840,13 @@
     </div>
     <div class="comparison-row" id="asb_diffpie">
         <div id="asb_diffpie_buttons" class="dl-button"></div>
-        <div id="asb_diffpie_chart"></div>
+        <div style="width: 600px;position: relative;">
+          <div id="asb_diffpie_chart" ></div>
+          <div>
+          <canvas id="asb_diffpie_chart_annotation" width="150" height="130" style="top:160px;left:350px;position: absolute;">
+          </canvas>
+          </div>
+        </div>
         <div id="asb_diffpie_result"></div>
     </div>
   </div>
@@ -839,7 +873,13 @@
     </div>
     <div class="comparison-row" id="dd_diffpie">
         <div id="dd_diffpie_buttons" class="dl-button"></div>
-        <div id="dd_diffpie_chart"></div>
+        <div style="width: 600px;position: relative;">
+          <div id="dd_diffpie_chart" ></div>
+          <div>
+          <canvas id="dd_diffpie_chart_annotation" width="150" height="130" style="top:160px;left:350px;position: absolute;">
+          </canvas>
+          </div>
+        </div>
         <div id="dd_diffpie_result"></div>
     </div>
   </div>
@@ -896,7 +936,13 @@
     </div>
     <div class="comparison-row" id="ydna_diffpie">
         <div id="ydna_diffpie_buttons" class="dl-button"></div>
-        <div id="ydna_diffpie_chart"></div>
+        <div style="width: 600px;position: relative;">
+          <div id="ydna_diffpie_chart" ></div>
+          <div>
+          <canvas id="ydna_diffpie_chart_annotation" width="150" height="130" style="top:160px;left:350px;position: absolute;">
+          </canvas>
+          </div>
+        </div>
         <div id="ydna_diffpie_result"></div>
     </div>
   </div>
@@ -923,7 +969,13 @@
     </div>
     <div class="comparison-row" id="mtdna_diffpie">
         <div id="mtdna_diffpie_buttons" class="dl-button"></div>
-        <div id="mtdna_diffpie_chart"></div>
+        <div style="width: 600px;position: relative;">
+          <div id="mtdna_diffpie_chart" ></div>
+          <div>
+          <canvas id="mtdna_diffpie_chart_annotation" width="150" height="130" style="top:160px;left:350px;position: absolute;">
+          </canvas>
+          </div>
+        </div>
         <div id="mtdna_diffpie_result"></div>
     </div>
   </div>
