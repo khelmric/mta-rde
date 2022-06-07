@@ -7,7 +7,6 @@
    </head>
 
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-   <script src="//unpkg.com/globe.gl"></script>
    <script type="text/javascript">
      google.charts.load('current', {'packages':['table', 'corechart', 'bar']});
    </script>
@@ -27,7 +26,6 @@
    <button onClick="window.open('https://github.com/khelmric/mta-rde');"> 
      <span>Code Repo on Github</span>
    </button>
-   <button id="globeButton" onclick="toggleGlobe()">&#128202;&nbsp;&nbsp;Data/Globe</button>
 
    <div id="helpEn" style="display:none">
      <section class="fieldset">
@@ -125,28 +123,6 @@
      var civEn = "Aboriginal Australian,Al-Andalus,Alans,Alemanni,Indigenous Peoples of North America,Amorites,Ancient Egyptians,Ancient Greeks,Aquitani,Alaskan Athabaskans,Avars,Aztec Empire,Balari,Baltic Tribes,Bantu Peoples,Belgae,Boii,Brahmin Dynasty of Sindh,Celtic Britons,Byzantine Empire,Canaanites and Semites,Cantabrians,Carthaginians,Celts,Celtiberians,Celtic Brigantes,Celtic Cantiaci,Celtic Corieltavi,Celtic Dobunni,Celtic Dumnonii,Celtic Durotriges,Celtic Parisi,Celtic Votadini,Chola Dynasty,Cimmerians,Dákok,Daunii,Early Slavs,Etruscans,Franks,Frisii,Gallo-Romans,Gauls,Gepids,Ghaznavid Dynasty,Greco-Bactrian Kingdom,Guanches,Han Dynasty,Hellenic Romans,Heneti,Hittites,Huns,Proto-Hungarians,Iberians,Illyrians,Incans,Iolaes,Jomon,Jutes,Karkota Empire,Khoisan,Kievan Rus,Latins,Licchavi Kingdom,Ligurians,Longobards,Lusitanians,Makurian,Marcomanni,Maurya Empire,Mayans,Minoans,The Golden Horde,Moors,Oeselians,Osi Tribe,Ostrogoths,Ottomans,Pannonian Illyrians,Philistines,Phoenicians,Picts,Pontic Empire,Pyu Kingdoms,Quadi,Rhaeti,Romans,Roman Hispania,Rouran Khaganate,Rugii,Safavid Dynasty,Saka,Samnites,Sarmatians,Saxons,Scordisci,Scythians,Seleucid Empire,Thracians,Thuringii,Tokugawa Shogunate,Vandals,Vascones,Vikings,Danish Vikings,Vikings (Icelandic),Norwegian Vikings,Vikings (Swedish),Visigoths,Yayoi,Yoruba Peoples,Other";
      var civHuNames = civHu.split(',');
      var civEnNames = civEn.split(',');
-     var gData1Lat = [];
-     var gData1Lon = [];
-     var gData1Size = [];
-     var gData2Lat = [];
-     var gData2Lon = [];
-     var gData2Size = [];
-     var gData1Content;
-     var gData2Content;
-
-     function toggleGlobe() {
-       var divGlobe = document.getElementById("globe");
-       var divRawData = document.getElementById("rawData");
-       if (divGlobe.style.display === "none") {
-         divGlobe.style.display = "block";
-         divRawData.style.display = "none";
-         document.getElementById("globeButton").innerHTML = "&#127757;&nbsp;&nbsp;Data/Globe";
-       } else {
-         divGlobe.style.display = "none";
-         divRawData.style.display = "initial";
-         document.getElementById("globeButton").innerHTML = "&#128202;&nbsp;&nbsp;Data/Globe";
-       }
-     }
 
      function helpHuFunction() {
        var divhelphu = document.getElementById("helpHu");
@@ -580,8 +556,10 @@
 
           var chartDataValues1 = " [" + chartData1Value + "%, " + chartData2Value + "%]";
           var chartDataValues2 = " [" + chartData1Value + "%, " + chartData2Value + "%]";
-          var tempChartData1 = chartArray1[i].replace(/\'\,/,chartDataValues1 + "\'\,");
-          var tempChartData2 = chartArray2[index].replace(/\'\,/,chartDataValues2 + "\'\,");
+var tempChartData1 = chartArray1[i].replace(/\'\,/,chartDataValues1 + "\'\,");
+var tempChartData2 = chartArray2[index].replace(/\'\,/,chartDataValues2 + "\'\,");
+//tempChartData1 = tempChartData1.replace(/\]$/,", " + annotation1 + "]");
+//tempChartData2 = tempChartData2.replace(/\]$/,", " + annotation2 + "]");
 
           chartData1 += "," + tempChartData1;
           chartData2 += "," + tempChartData2;
@@ -772,7 +750,7 @@
       smTableHeader="No,Name,Y-DNA,mtDNA,Age,GD,Arch ID";
 
       mainREGEXddar=/dataDD\=\[[\s\S]*?\]\;/g;
-      subREGEX1ddar=/title[\s\S]*?\,/g;
+      subREGEX1ddar=/title[\s\S]*?\,/g;;
       subREGEX2ddar=/title\"\:\s?\"Deep\s?Dive\s?match\:/g;
       subREGEX3ddar=/\"\,\,|\"\,/g;
       subREGEX4ddar=/Y-DNA\:\s?|mtDNA\:\s?|Age\:\s?|Longest\s?Shared\s?DNA\:\s?|Archaeological\s?ID\:\s?/g;
@@ -819,91 +797,6 @@
         printListAsTable(textContent, ddarMatchNo, mainREGEXddar, subREGEX1ddar, subREGEX2ddar, subREGEX3ddar, subREGEX4ddar, subREGEX5ddar, subREGEX6ddar, "ddar2", ddarTableHeader);
         printBigListAsTable(textContent, arrayListHaploExp, mainREGEXhaploExp, subREGEXhaploExp2, subREGEXhaploExp3, subREGEXhaploExp4, subREGEXhaploExp5, "haploexp2", haploExpHeader);
       }
-
-      openGlobe(textContent,col);
-
-    }
-
-    function openGlobe(textContent,col) {
-      var gData1 = [];
-
-      if (col == 1) {
-       gData1Content = " ";
-      } else {
-       gData2Content = " ";
-      }
-
-      const markerSvg = `<svg viewBox="-4 0 36 36">
-        <circle fill="currentColor" cx="14" cy="14" r="7"></circle>
-      </svg>`;
-
-      textContent = textContent.match(/refreshFunctionGlobe.?\(samplemax\)[\s\S]*?\]\;/);
-      textContent = String(textContent);
-      textContent = textContent.replace(/^[\s\S]*?data2\=/g, '');
-      textContent = String(textContent);        
-      textContent = textContent.split('}');
-      for (var i = 0; i < textContent.length; i++) {
-        geoAttributes = textContent[i].split(',');
-        for (var j = 0; j < geoAttributes.length; j++) {
-          if (geoAttributes[j].includes("latitude")) {
-            if (col == 1) {
-              gData1Lat[i] = geoAttributes[j].replace(/^[\s\S]*?\ /g, '');
-            } else {
-              gData2Lat[i] = geoAttributes[j].replace(/^[\s\S]*?\ /g, '');
-            }
-          }
-          if (geoAttributes[j].includes("longitude")) {
-            if (col == 1) {
-              gData1Lon[i] = geoAttributes[j].replace(/^[\s\S]*?\ /g, '');
-            } else {
-              gData2Lon[i] = geoAttributes[j].replace(/^[\s\S]*?\ /g, '');
-            }
-          }
-          if (geoAttributes[j].includes("cradius")) {
-            if (col == 1) {
-              gData1Size[i] = parseInt(geoAttributes[j].replace(/^[\s\S]*?\ /g, '')) * 8;
-            } else {
-              gData2Size[i] = parseInt(geoAttributes[j].replace(/^[\s\S]*?\ /g, '')) * 8;
-            }
-          }
-        }
-      }
-
-      if (typeof gData1Content == 'undefined') {
-        gData1Content = " ";
-      }
-      if (typeof gData2Content == 'undefined') {
-        gData2Content = " ";
-      }
-
-      if (col == 1) {
-        for (var i = 0; i < gData1Size.length; i++) {
-          gData1Content += " { lat: " + gData1Lat[i] + ", lng: " + gData1Lon[i] + ", size: " + gData1Size[i] + ", color: 'rgba(0, 0, 255, 0.60)'},";
-        }
-      } else {
-        for (var i = 0; i < gData2Size.length; i++) {
-          gData2Content += " { lat: " + gData2Lat[i] + ", lng: " + gData2Lon[i] + ", size: " + gData2Size[i] + ", color: 'rgba(255, 0, 0, 0.60)'},";
-        }
-      }
-
-      gDataSumContent = "gData = [" + gData1Content + gData2Content + "];";
-      eval (gDataSumContent);
-
-      Globe()
-        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-        .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
-        .htmlElementsData(gData)
-        .htmlElement(d => {
-          const el = document.createElement('div');
-          el.innerHTML = markerSvg;
-          el.style.color = d.color;
-          el.style.width = `${d.size}px`;
-          el.style['pointer-events'] = 'auto';
-          el.style.cursor = 'pointer';
-          el.onclick = () => console.info(d);
-          return el;
-        })
-      (document.getElementById('globe'));
     }
 
    </script>
@@ -918,16 +811,14 @@
   </div>
   <div class="row">
     <div class="column">
-      <p class="header" style="display:none">&#128309;&nbsp;&nbsp; Kit: [<b id="kit1_number"></b>] <b id="kit1_name"></b> (<b id="kit1_date"></b>)</p>
+      <p class="header" style="display:none">Kit: [<b id="kit1_number"></b>] <b id="kit1_name"></b> (<b id="kit1_date"></b>)</p>
     </div>
     <div class="column">
-      <p class="header" style="display:none">&#128308;&nbsp;&nbsp; Kit: [<b id="kit2_number"></b>] <b id="kit2_name"></b> (<b id="kit2_date"></b>)</p>
+      <p class="header" style="display:none">Kit: [<b id="kit2_number"></b>] <b id="kit2_name"></b> (<b id="kit2_date"></b>)</p>
     </div>
   </div>
 
-  <div id="globe" style="display:none"></div>
 
-  <div id="rawData" style="display:initial">
   <div class="asb-block">
     <div class="row" id="asb">
       <hr class="header" style="display:none">
@@ -1134,6 +1025,6 @@
       </div>
     </div>
   </div>
-  </div>
+
    </body>
 </html>
