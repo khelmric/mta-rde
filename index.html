@@ -24,10 +24,10 @@
    <label for="langEN">English</label>
    <input type='radio' name='languague' id='langHU'>
    <label for="langHU">Magyar</label>
-   <button onClick="window.open('https://github.com/khelmric/mta-rde');"> 
-     <span>Code Repo on Github</span>
+   <button onClick="window.open('https://github.com/khelmric/mta-rde');">
+   <span>Code Repo on Github</span>
    </button>
-   <button id="globeButton" onclick="toggleGlobe()">&#128202;&nbsp;&nbsp;Data/Globe</button>
+   <button id="globeButton" onclick="toggleGlobe()">&#127757;&nbsp;&nbsp;Switch to Globe-mode</button>
 
    <div id="helpEn" style="display:none">
      <section class="fieldset">
@@ -53,7 +53,8 @@
        </ol>
      </section>
    </div>
-   <div id="viewOptions" style="display:none">
+   <div id="dataModeButtons">
+     <div id="viewOptions" style="display:none">
          <br>
          <section class="fieldset">
            <h2>Results</h2>
@@ -88,6 +89,7 @@
              <input type="checkbox" id="comparison-row" onchange="toggleByClass(this)" checked="true" />
              <label for="showComparison">Comparison</label><br>
          </section>
+     </div>
    </div>
 
   <script>
@@ -128,24 +130,153 @@
      var gData1Lat = [];
      var gData1Lon = [];
      var gData1Size = [];
+     var gData1Text = [];
+     var gData1Label = [];
      var gData2Lat = [];
      var gData2Lon = [];
      var gData2Size = [];
+     var gData2Text = [];
+     var gData2Label = [];
+     var gDataDiffLat = [];
+     var gDataDiffLon = [];
+     var gDataDiffSize = [];
+     var gDataDiffText = [];
      var gData1Content;
      var gData2Content;
+     var gDataDiffContent;
+     var gDataCommonContent;
+     var globeImg = "globeDay.jpg";
+     var reduceGlobeLabels = 120000;
+     var reduceGlobeSpikes = 100000;
+     var globeAnimate = false;
 
      function toggleGlobe() {
        var divGlobe = document.getElementById("globe");
+       var divGlobeButtons = document.getElementById("globeButtons");
        var divRawData = document.getElementById("rawData");
        if (divGlobe.style.display === "none") {
          divGlobe.style.display = "block";
+         divGlobeButtons.style.display = "block";
          divRawData.style.display = "none";
-         document.getElementById("globeButton").innerHTML = "&#127757;&nbsp;&nbsp;Data/Globe";
+         document.getElementById("globeButton").innerHTML = "&#128202;&nbsp;&nbsp;Switch to Data-mode";
        } else {
          divGlobe.style.display = "none";
+         divGlobeButtons.style.display = "none";
          divRawData.style.display = "initial";
-         document.getElementById("globeButton").innerHTML = "&#128202;&nbsp;&nbsp;Data/Globe";
+         document.getElementById("globeButton").innerHTML = "&#127757;&nbsp;&nbsp;Switch to Globe-mode";
        }
+     }
+
+     function toggleGlobeLabels(checkbox) {
+       if (checkbox.checked) {
+         reduceGlobeLabels = 120;
+       } else {
+         reduceGlobeLabels = 120000;
+       }
+       drawGlobe();
+     }
+
+     function toggleGlobeSpikes(checkbox) {
+       if (checkbox.checked) {
+         reduceGlobeSpikes = 1000;
+       } else {
+         reduceGlobeSpikes = 100000;
+       }
+       drawGlobe();
+     }
+
+     function animateGlobe(checkbox) {
+       if (checkbox.checked) {
+         globeAnimate = true;
+       } else {
+         globeAnimate = false;
+       }
+       drawGlobe();
+     }
+
+     function changeGlobeImg() {
+       var globeSelect = document.getElementById("globeImg");
+       globeImg = globeSelect.options[globeSelect.selectedIndex].value;
+       drawGlobe();
+     }
+
+     function getGlobeDataDiff(mode) {
+       gDataDiffContent = "";
+       gDataCommonContent = "";
+       var gData1Diff = gData1Content.replace(/\Genetic[\s\S]*?\<br\>/g, '');
+       var gData2Diff = gData2Content.replace(/\Genetic[\s\S]*?\<br\>/g, '');
+       eval("var gData1 =[" + gData1Diff + "];");
+       eval("var gData2 =[" + gData2Diff + "];");
+       if (mode != "diff-kit2") {
+         for (var i = 0; i < gData1.length; i++) {
+           var matchFound = "false";
+           for (var j = 0; j < gData2.length; j++) {
+             var gData1Element = JSON.stringify(gData1[i]).replace(/rgba\([\s\S]*?\)/g, 'rgba(150, 0, 150, 0.60)');
+             var gData2Element = JSON.stringify(gData2[j]).replace(/rgba\([\s\S]*?\)/g, 'rgba(150, 0, 150, 0.60)');
+             if (gData1Element == gData2Element) {
+               matchFound = "true";
+               gDataCommonContent += gData1Element + ",";
+             }
+           }
+           if (matchFound == "false") {
+             gDataDiffContent += JSON.stringify(gData1[i]) + ",";
+            }
+         }
+       }
+       if (mode != "diff-kit1") {
+         for (var i = 0; i < gData2.length; i++) {
+           var matchFound = "false";
+           for (var j = 0; j < gData1.length; j++) {
+             var gData1Element = JSON.stringify(gData1[j]).replace(/rgba\([\s\S]*?\)/g, 'rgba(150, 0, 150, 0.60)');
+             var gData2Element = JSON.stringify(gData2[i]).replace(/rgba\([\s\S]*?\)/g, 'rgba(150, 0, 150, 0.60)');
+             if (gData1Element == gData2Element) {
+               matchFound = "true";
+             }
+           }
+           if (matchFound == "false") {
+             gDataDiffContent += JSON.stringify(gData2[i]) + ",";
+           }
+         }
+       }
+
+       if (mode == "diff" || mode == "diff-kit1" || mode == "diff-kit2") {
+         var gDataDiff = "gData = [" + gDataDiffContent + "];";
+         eval (gDataDiff);
+       } 
+       if (mode == "common") {
+         var gDataCommon = "gData = [" + gDataCommonContent + "];";
+         eval (gDataCommon);
+       }
+     }
+
+     function changeGlobeData() {
+       var globeData = document.getElementById("globeData");
+       globeData = globeData.options[globeData.selectedIndex].value;
+       if (globeData == "merge") {
+         gDataSumContent = "gData = [" + gData1Content + gData2Content + "];";
+         eval (gDataSumContent);
+       }
+       if (globeData == "kit1") {
+         gDataSumContent = "gData = [" + gData1Content + "];";
+         eval (gDataSumContent);
+       }
+       if (globeData == "kit2") {
+         gDataSumContent = "gData = [" + gData2Content + "];";
+         eval (gDataSumContent);
+       }
+       if (globeData == "diff") {
+         getGlobeDataDiff("diff");
+       }
+       if (globeData == "diff-kit1") {
+         getGlobeDataDiff("diff-kit1");
+       }
+       if (globeData == "diff-kit2") {
+         getGlobeDataDiff("diff-kit2");
+       }
+       if (globeData == "common") {
+         getGlobeDataDiff("common");
+       }
+       drawGlobe();
      }
 
      function helpHuFunction() {
@@ -727,6 +858,17 @@
       var kitNumber = getKitData(textContent, kitDivInfo, mainREGEXkit, subREGEX1kit);
       getKitDate(textContent, kitNumber, kitDivInfo);
 
+      // Update globe data select with kit info
+        if (col == 1) {
+          var kit1name = document.getElementById('kit1_name');
+          var kit1date = document.getElementById('kit1_date');
+          document.getElementById("globeData-kit1").innerHTML = kit1name.textContent + " - " + kit1date.textContent;
+        } else {
+          var kit2name = document.getElementById('kit2_name');
+          var kit2date = document.getElementById('kit2_date');
+          document.getElementById("globeData-kit2").innerHTML = kit2name.textContent + " - " + kit2date.textContent;
+        }
+
       // Get ASB, DD, Y-DNA and mtDNA data from html text
       var mainREGEXasb = new RegExp('refreshFunctionChartAncient' + kitNumber + '\\(jobid\\) \\{[\\s\\S]*?\\}', "g");
       var mainREGEXdd =  new RegExp('refreshFunctionChartDDAncient' + kitNumber + '\\(jobid\\) \{[\\s\\S]*?\\}', "g");
@@ -820,92 +962,137 @@
         printBigListAsTable(textContent, arrayListHaploExp, mainREGEXhaploExp, subREGEXhaploExp2, subREGEXhaploExp3, subREGEXhaploExp4, subREGEXhaploExp5, "haploexp2", haploExpHeader);
       }
 
-      openGlobe(textContent,col);
+      prepareGlobe(textContent,col);
 
     }
 
-    function openGlobe(textContent,col) {
-      var gData1 = [];
+    function prepareGlobe(textContent,col) {
 
-      if (col == 1) {
-       gData1Content = " ";
-      } else {
-       gData2Content = " ";
-      }
+        if (col == 1) {
+         gData1Content = " ";
+        } else {
+         gData2Content = " ";
+        }
 
-      const markerSvg = `<svg viewBox="-4 0 36 36">
-        <circle fill="currentColor" cx="14" cy="14" r="7"></circle>
-      </svg>`;
-
-      textContent = textContent.match(/refreshFunctionGlobe.?\(samplemax\)[\s\S]*?\]\;/);
-      textContent = String(textContent);
-      textContent = textContent.replace(/^[\s\S]*?data2\=/g, '');
-      textContent = String(textContent);        
-      textContent = textContent.split('}');
-      for (var i = 0; i < textContent.length; i++) {
-        geoAttributes = textContent[i].split(',');
-        for (var j = 0; j < geoAttributes.length; j++) {
-          if (geoAttributes[j].includes("latitude")) {
-            if (col == 1) {
-              gData1Lat[i] = geoAttributes[j].replace(/^[\s\S]*?\ /g, '');
-            } else {
-              gData2Lat[i] = geoAttributes[j].replace(/^[\s\S]*?\ /g, '');
+        textContent = textContent.match(/refreshFunctionGlobe.?\(samplemax\)[\s\S]*?\]\;/);
+        textContent = String(textContent);
+        textContent = textContent.replace(/^[\s\S]*?data2\=/g, '');
+        textContent = String(textContent);        
+        textContent = textContent.split('}');
+        for (var i = 0; i < textContent.length; i++) {
+          geoAttributes = textContent[i].split(',');
+          for (var j = 0; j < geoAttributes.length; j++) {
+            if (geoAttributes[j].includes("latitude")) {
+              if (col == 1) {
+                gData1Lat[i] = geoAttributes[j].replace(/^[\s\S]*?\ /g, '');
+              } else {
+                gData2Lat[i] = geoAttributes[j].replace(/^[\s\S]*?\ /g, '');
+              }
             }
-          }
-          if (geoAttributes[j].includes("longitude")) {
-            if (col == 1) {
-              gData1Lon[i] = geoAttributes[j].replace(/^[\s\S]*?\ /g, '');
-            } else {
-              gData2Lon[i] = geoAttributes[j].replace(/^[\s\S]*?\ /g, '');
+            if (geoAttributes[j].includes("longitude")) {
+              if (col == 1) {
+                gData1Lon[i] = geoAttributes[j].replace(/^[\s\S]*?\ /g, '');
+              } else {
+                gData2Lon[i] = geoAttributes[j].replace(/^[\s\S]*?\ /g, '');
+              }
             }
-          }
-          if (geoAttributes[j].includes("cradius")) {
-            if (col == 1) {
-              gData1Size[i] = parseInt(geoAttributes[j].replace(/^[\s\S]*?\ /g, '')) * 8;
-            } else {
-              gData2Size[i] = parseInt(geoAttributes[j].replace(/^[\s\S]*?\ /g, '')) * 8;
+            if (geoAttributes[j].includes("cradius")) {
+              if (col == 1) {
+                gData1Size[i] = parseInt(geoAttributes[j].replace(/^[\s\S]*?\ /g, '')) * 8;
+              } else {
+                gData2Size[i] = parseInt(geoAttributes[j].replace(/^[\s\S]*?\ /g, '')) * 8;
+              }
+            }
+            if (geoAttributes[j].includes("title")) {
+              var divBegin = '"<div style=\'position: relative; z-index: 4; min-width: 108px; padding: 10px 14px;color: #000000; background: #FFFFFF;border: 1px solid #E5E5E5;box-shadow: 0px 2px 20px rgba(32, 32, 35, 0.13);border-radius: 4px;\'>';
+              var divEnd = '</div>"';
+              if (col == 1) {
+                gData1Text[i] = geoAttributes[j].replace(/^[\s\S]*?\:\<br\>/g, '');
+                gData1Text[i] = gData1Text[i].replace(/\"/g, '');
+                gData1Text[i] = divBegin + gData1Text[i] + divEnd;
+                gData1Label[i] = geoAttributes[j].replace(/^[\s\S]*?\:\<br\>/g, '');
+                gData1Label[i] = gData1Label[i].replace(/\<br\>Age\:\ /g, ' ');
+                gData1Label[i] = gData1Label[i].replace(/\<br\>Genetic[\s\S]*?ID\:\ /g, ' (');
+                gData1Label[i] = gData1Label[i].replace(/\"[\s\S]*?$/g, ')');
+                
+              } else {
+                gData2Text[i] = geoAttributes[j].replace(/^[\s\S]*?\:\<br\>/g, '');
+                gData2Text[i] = gData2Text[i].replace(/\"/g, '');
+                gData2Text[i] = divBegin + gData2Text[i] + divEnd;
+                gData2Label[i] = geoAttributes[j].replace(/^[\s\S]*?\:\<br\>/g, '');
+                gData2Label[i] = gData2Label[i].replace(/\<br\>Age\:\ /g, ' ');
+                gData2Label[i] = gData2Label[i].replace(/\<br\>Genetic[\s\S]*?ID\:\ /g, ' (');
+                gData2Label[i] = gData2Label[i].replace(/\"[\s\S]*?$/g, ')');
+              }
             }
           }
         }
-      }
 
-      if (typeof gData1Content == 'undefined') {
-        gData1Content = " ";
-      }
-      if (typeof gData2Content == 'undefined') {
-        gData2Content = " ";
-      }
-
-      if (col == 1) {
-        for (var i = 0; i < gData1Size.length; i++) {
-          gData1Content += " { lat: " + gData1Lat[i] + ", lng: " + gData1Lon[i] + ", size: " + gData1Size[i] + ", color: 'rgba(0, 0, 255, 0.60)'},";
+        if (typeof gData1Content == 'undefined') {
+          gData1Content = " ";
         }
-      } else {
-        for (var i = 0; i < gData2Size.length; i++) {
-          gData2Content += " { lat: " + gData2Lat[i] + ", lng: " + gData2Lon[i] + ", size: " + gData2Size[i] + ", color: 'rgba(255, 0, 0, 0.60)'},";
+        if (typeof gData2Content == 'undefined') {
+          gData2Content = " ";
         }
-      }
 
-      gDataSumContent = "gData = [" + gData1Content + gData2Content + "];";
-      eval (gDataSumContent);
+        if (col == 1) {
+          for (var i = 0; i < gData1Size.length; i++) {
+            gData1Content += " { name: " + gData1Text[i] + ", label: '" + gData1Label[i] + "', lat: " + gData1Lat[i] + ", lng: " + gData1Lon[i] + ", size: " + gData1Size[i] + ", color: 'rgba(0, 0, 255, 0.60)'},";
+          }
+        } else {
+          for (var i = 0; i < gData2Size.length; i++) {
+            gData2Content += " { name: " + gData2Text[i] + ", label: '" + gData2Label[i] + "',lat: " + gData2Lat[i] + ", lng: " + gData2Lon[i] + ", size: " + gData2Size[i] + ", color: 'rgba(255, 0, 0, 0.60)'},";
+          }
+        }
 
-      Globe()
-        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+        gDataSumContent = "gData = [" + gData1Content + gData2Content + "];";
+        eval (gDataSumContent);
+        changeGlobeData();
+
+    }
+
+
+    function drawGlobe() {
+        const markerSvg = `<svg viewBox="-4 0 36 36">
+          <circle fill="currentColor" cx="14" cy="14" r="7"></circle>
+        </svg>`;
+      var imgUrl= "'globes/" + globeImg + "'";
+      const world = Globe()
+        .globeImageUrl(eval(imgUrl))
         .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
-        .htmlElementsData(gData)
-        .htmlElement(d => {
-          const el = document.createElement('div');
-          el.innerHTML = markerSvg;
-          el.style.color = d.color;
-          el.style.width = `${d.size}px`;
-          el.style['pointer-events'] = 'auto';
-          el.style.cursor = 'pointer';
-          el.onclick = () => console.info(d);
-          return el;
-        })
-      (document.getElementById('globe'));
-    }
+//        .htmlElementsData(gData)
+//        .htmlElement(d => {
+//          const el = document.createElement('div');
+//          el.innerHTML = markerSvg;
+//          el.style.color = d.color;
+//          el.style.width = `${d.size}px`;
+//          el.style['pointer-events'] = 'auto';
+//          el.style.cursor = 'pointer';
+//          el.onclick = () => console.info(d);
+//          return el;
+//        })
+        .pointsData(gData)
+        .pointLabel(d => d.name)
+        .pointLat(d => d.lat)
+        .pointLng(d => d.lng)
+        .pointRadius(d => d.size / 80)
+        .pointColor(d => d.color)
+        .pointAltitude(d => d.size / reduceGlobeSpikes)
+        .labelsData(gData)
+        .labelLat(d => d.lat)
+        .labelLng(d => d.lng)
+        .labelSize(d => d.size / reduceGlobeLabels)
+        .labelText(d => d.label)
+        .labelColor(() => 'rgba(0, 0, 0, 100.0)')
+        .labelIncludeDot(true)
 
+      (document.getElementById('globe'));
+
+    // Auto-rotate
+    world.controls().autoRotate = globeAnimate;
+    world.controls().autoRotateSpeed = 0.35;
+
+}
    </script>
 
   <div class="row">
@@ -925,6 +1112,33 @@
     </div>
   </div>
 
+  <div id="globeButtons" style="display:none">
+    <label for="globeImg">Globe:</label>
+    <select name="globeImg" id="globeImg" onChange="changeGlobeImg()">
+      <option value="globeDay.jpg" selected>Day</option>
+      <option value="globeDay2.jpg">Day 2</option>
+      <option value="globeDay3.jpg">Day 3</option>
+      <option value="globeBW.jpg">Black and White</option>
+      <option value="globeGray.jpg">Gray</option>
+      <option value="globeSepia.jpg">Sepia</option>
+    </select>
+    <select name="globeData" id="globeData" onChange="changeGlobeData()">
+      <option value="merge"  id="globeData-merge" selected>All</option>
+      <option value="common" id="globeData-common">Common</option>
+      <option value="diff" id="globeData-diff">Diff</option>
+      <option value="diff-kit1" id="globeData-diff-kit1">Diff1</option>
+      <option value="diff-kit2" id="globeData-diff-kit2">Diff2</option>
+      <option value="kit1" id="globeData-kit1">none</option>
+      <option value="kit2" id="globeData-kit2">none</option>
+    </select>
+    <label style="padding-left:12;margin-right:0" for="globeShowLabels"> Labels:</label>
+    <input type="checkbox" id="globeShowLabels" onchange="toggleGlobeLabels(this)" />
+    <label style="padding-left:12;margin-right:0" for="globeShowSpikes"> Spikes:</label>
+    <input type="checkbox" id="globeShowSpikes" onchange="toggleGlobeSpikes(this)" />
+    <label style="padding-left:12;margin-right:0" for="globeAnimation"> Animation:</label>
+    <input type="checkbox" id="globeAnimation" onchange="animateGlobe(this)" />
+  <br><br>
+  </div>
   <div id="globe" style="display:none"></div>
 
   <div id="rawData" style="display:initial">
