@@ -4,10 +4,19 @@
    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
    <head>
      <link rel="stylesheet" href="style.css">
+
+
+  <script src="//unpkg.com/react/umd/react.production.min.js"></script>
+  <script src="//unpkg.com/react-dom/umd/react-dom.production.min.js"></script>
+  <script src="//unpkg.com/babel-standalone"></script>
+
+  <script src="//unpkg.com/react-globe.gl"></script>
+
+
    </head>
 
    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-   <script src="//unpkg.com/globe.gl"></script>
+<!--   <script src="//unpkg.com/globe.gl"></script> -->
    <script type="text/javascript">
      google.charts.load('current', {'packages':['table', 'corechart', 'bar']});
    </script>
@@ -146,9 +155,13 @@
      var gDataDiffContent;
      var gDataCommonContent;
      var globeImg = "globeDay.jpg";
-     var reduceGlobeLabels = 120000;
-     var reduceGlobeSpikes = 100000;
-     var globeAnimate = false;
+     var imgUrl= "'globes/" + globeImg + "'";
+     var reduceGlobeSpikes = 1500000000000000;
+     var kit1SampleCount = 1;
+     var kit2SampleCount = 1;
+     var globePointsConfigured = 0;
+     var textContent1;
+     var textContent2;
 
      function toggleGlobe() {
        var divGlobe = document.getElementById("globe");
@@ -159,6 +172,15 @@
          divGlobeButtons.style.display = "block";
          divRawData.style.display = "none";
          document.getElementById("globeButton").innerHTML = "&#128202;&nbsp;&nbsp;Switch to Data-mode";
+ 
+         // globe max points slider
+         var slider = document.getElementById("globePointsRange");
+         var output = document.getElementById("globeMaxPoints");
+         output.innerHTML = slider.value;
+
+         slider.oninput = function() {
+           output.innerHTML = this.value;
+         }
        } else {
          divGlobe.style.display = "none";
          divGlobeButtons.style.display = "none";
@@ -167,29 +189,11 @@
        }
      }
 
-     function toggleGlobeLabels(checkbox) {
-       if (checkbox.checked) {
-         reduceGlobeLabels = 120;
-       } else {
-         reduceGlobeLabels = 120000;
-       }
-       drawGlobe();
-     }
-
      function toggleGlobeSpikes(checkbox) {
        if (checkbox.checked) {
-         reduceGlobeSpikes = 1000;
+         reduceGlobeSpikes = 100000000;
        } else {
-         reduceGlobeSpikes = 100000;
-       }
-       drawGlobe();
-     }
-
-     function animateGlobe(checkbox) {
-       if (checkbox.checked) {
-         globeAnimate = true;
-       } else {
-         globeAnimate = false;
+         reduceGlobeSpikes = 1500000000000;
        }
        drawGlobe();
      }
@@ -197,7 +201,18 @@
      function changeGlobeImg() {
        var globeSelect = document.getElementById("globeImg");
        globeImg = globeSelect.options[globeSelect.selectedIndex].value;
+       imgUrl= "'globes/" + globeImg + "'";
        drawGlobe();
+     }
+
+     function changeGlobePoints() {
+       globePointsConfigured = document.getElementById("globePointsRange").value;
+       if (textContent1 != null && textContent1 != 'undefined') {
+         prepareGlobe(textContent1,1);
+       }
+       if (textContent2 != null && textContent2 != 'undefined') {
+         prepareGlobe(textContent2,2);
+       }
      }
 
      function getGlobeDataDiff(mode) {
@@ -212,8 +227,10 @@
            var matchFound = "false";
            for (var j = 0; j < gData2.length; j++) {
              var gData1Element = JSON.stringify(gData1[i]).replace(/rgba\([\s\S]*?\)/g, 'rgba(150, 0, 150, 0.60)');
+             var gData1Element1 = gData1Element.replace(/\"size\"\:[\s\S]*?\,/g, '\"size\"\:40\,');
              var gData2Element = JSON.stringify(gData2[j]).replace(/rgba\([\s\S]*?\)/g, 'rgba(150, 0, 150, 0.60)');
-             if (gData1Element == gData2Element) {
+             var gData2Element1 = gData2Element.replace(/\"size\"\:[\s\S]*?\,/g, '\"size\"\:40\,');
+             if (gData1Element1 == gData2Element1) {
                matchFound = "true";
                gDataCommonContent += gData1Element + ",";
              }
@@ -228,8 +245,10 @@
            var matchFound = "false";
            for (var j = 0; j < gData1.length; j++) {
              var gData1Element = JSON.stringify(gData1[j]).replace(/rgba\([\s\S]*?\)/g, 'rgba(150, 0, 150, 0.60)');
+             var gData1Element1 = gData1Element.replace(/\"size\"\:[\s\S]*?\,/g, '\"size\"\:40\,');
              var gData2Element = JSON.stringify(gData2[i]).replace(/rgba\([\s\S]*?\)/g, 'rgba(150, 0, 150, 0.60)');
-             if (gData1Element == gData2Element) {
+             var gData2Element1 = gData2Element.replace(/\"size\"\:[\s\S]*?\,/g, '\"size\"\:40\,');
+             if (gData1Element1 == gData2Element1) {
                matchFound = "true";
              }
            }
@@ -962,24 +981,67 @@
         printBigListAsTable(textContent, arrayListHaploExp, mainREGEXhaploExp, subREGEXhaploExp2, subREGEXhaploExp3, subREGEXhaploExp4, subREGEXhaploExp5, "haploexp2", haploExpHeader);
       }
 
+      if (col == 1) {
+        textContent1 = textContent; 
+      } else {
+        textContent2 = textContent;
+      }
+
       prepareGlobe(textContent,col);
 
     }
 
     function prepareGlobe(textContent,col) {
-
-        if (col == 1) {
-         gData1Content = " ";
-        } else {
-         gData2Content = " ";
-        }
-
         textContent = textContent.match(/refreshFunctionGlobe.?\(samplemax\)[\s\S]*?\]\;/);
         textContent = String(textContent);
         textContent = textContent.replace(/^[\s\S]*?data2\=/g, '');
         textContent = String(textContent);        
         textContent = textContent.split('}');
-        for (var i = 0; i < textContent.length; i++) {
+
+        if (col == 1) {
+         gData1Content = " ";
+         kit1SampleCount = textContent.length - 1;
+         gData1Lat = [];
+         gData1Lon = [];
+         gData1Size = [];
+        } else {
+         gData2Content = " ";
+         kit2SampleCount = textContent.length - 1;
+         gData2Lat = [];
+         gData2Lon = [];
+         gData2Size = [];
+        }
+
+        // Set max value for maxPoints on globe
+        if (kit1SampleCount > kit2SampleCount) {
+          document.getElementById("globePointsRange").max = kit1SampleCount;
+          if (globePointsConfigured > kit1SampleCount || globePointsConfigured == 0) {
+            globePointsConfigured = kit1SampleCount;
+            document.getElementById("globePointsRange").value = kit1SampleCount;
+            document.getElementById("globeMaxPoints").innerHTML = kit1SampleCount;
+          } else {
+            document.getElementById("globePointsRange").value = globePointsConfigured;
+            document.getElementById("globeMaxPoints").innerHTML = globePointsConfigured;
+          }
+        } else {
+          document.getElementById("globePointsRange").max = kit2SampleCount;
+          if (globePointsConfigured > kit2SampleCount || globePointsConfigured == 0) {
+            globePointsConfigured = kit2SampleCount;
+            document.getElementById("globePointsRange").value = kit2SampleCount;
+            document.getElementById("globeMaxPoints").innerHTML = kit2SampleCount;
+          } else {
+            document.getElementById("globePointsRange").value = globePointsConfigured;
+            document.getElementById("globeMaxPoints").innerHTML = globePointsConfigured;
+          }
+        }
+
+        var globeDataArrayLength;
+        if (globePointsConfigured > textContent.length) {
+          globeDataArrayLength = textContent.length;
+        } else {
+          globeDataArrayLength = globePointsConfigured;
+        }
+        for (var i = 0; i < globeDataArrayLength; i++) {
           geoAttributes = textContent[i].split(',');
           for (var j = 0; j < geoAttributes.length; j++) {
             if (geoAttributes[j].includes("latitude")) {
@@ -1036,10 +1098,12 @@
         }
 
         if (col == 1) {
+          gData1Content = " ";
           for (var i = 0; i < gData1Size.length; i++) {
             gData1Content += " { name: " + gData1Text[i] + ", label: '" + gData1Label[i] + "', lat: " + gData1Lat[i] + ", lng: " + gData1Lon[i] + ", size: " + gData1Size[i] + ", color: 'rgba(0, 0, 255, 0.60)'},";
           }
         } else {
+          gData2Content = " ";
           for (var i = 0; i < gData2Size.length; i++) {
             gData2Content += " { name: " + gData2Text[i] + ", label: '" + gData2Label[i] + "',lat: " + gData2Lat[i] + ", lng: " + gData2Lon[i] + ", size: " + gData2Size[i] + ", color: 'rgba(255, 0, 0, 0.60)'},";
           }
@@ -1048,51 +1112,34 @@
         gDataSumContent = "gData = [" + gData1Content + gData2Content + "];";
         eval (gDataSumContent);
         changeGlobeData();
-
     }
+   </script>
 
+   <script type="text/jsx">
+     const { useState, useEffect, useRef } = React;
 
-    function drawGlobe() {
-        const markerSvg = `<svg viewBox="-4 0 36 36">
-          <circle fill="currentColor" cx="14" cy="14" r="7"></circle>
-        </svg>`;
-      var imgUrl= "'globes/" + globeImg + "'";
-      const world = Globe()
-        .globeImageUrl(eval(imgUrl))
-        .backgroundImageUrl('//unpkg.com/three-globe/example/img/night-sky.png')
-//        .htmlElementsData(gData)
-//        .htmlElement(d => {
-//          const el = document.createElement('div');
-//          el.innerHTML = markerSvg;
-//          el.style.color = d.color;
-//          el.style.width = `${d.size}px`;
-//          el.style['pointer-events'] = 'auto';
-//          el.style.cursor = 'pointer';
-//          el.onclick = () => console.info(d);
-//          return el;
-//        })
-        .pointsData(gData)
-        .pointLabel(d => d.name)
-        .pointLat(d => d.lat)
-        .pointLng(d => d.lng)
-        .pointRadius(d => d.size / 80)
-        .pointColor(d => d.color)
-        .pointAltitude(d => d.size / reduceGlobeSpikes)
-        .labelsData(gData)
-        .labelLat(d => d.lat)
-        .labelLng(d => d.lng)
-        .labelSize(d => d.size / reduceGlobeLabels)
-        .labelText(d => d.label)
-        .labelColor(() => 'rgba(0, 0, 0, 100.0)')
-        .labelIncludeDot(true)
+     const World = () => {
+       const globeEl = useRef();
 
-      (document.getElementById('globe'));
+         return <Globe
+           ref={globeEl}
+             globeImageUrl = {eval(imgUrl)}
+             backgroundImageUrl = "//unpkg.com/three-globe/example/img/night-sky.png"
+             pointsData = {gData}
+             pointLat = {(d) => d.lat}
+             pointLng = {(d) => d.lng}
+             pointRadius = {(d) => d.size / 80}
+             pointColor = {(d) => d.color}
+             pointAltitude = {(d) => d.size * d.size * d.size * d.size / reduceGlobeSpikes}
+          />;
+     };
 
-    // Auto-rotate
-    world.controls().autoRotate = globeAnimate;
-    world.controls().autoRotateSpeed = 0.35;
-
-}
+     function drawGlobe() {
+         ReactDOM.render(
+           <World />,
+           document.getElementById('globe')
+         );
+     }
    </script>
 
   <div class="row">
@@ -1118,7 +1165,9 @@
       <option value="globeDay.jpg" selected>Day</option>
       <option value="globeDay2.jpg">Day 2</option>
       <option value="globeDay3.jpg">Day 3</option>
+      <option value="globeDay4.jpg">Day 4</option>
       <option value="globeBW.jpg">Black and White</option>
+      <option value="globeBWwater.png">Black and White with water</option>
       <option value="globeGray.jpg">Gray</option>
       <option value="globeSepia.jpg">Sepia</option>
     </select>
@@ -1131,12 +1180,11 @@
       <option value="kit1" id="globeData-kit1">none</option>
       <option value="kit2" id="globeData-kit2">none</option>
     </select>
-    <label style="padding-left:12;margin-right:0" for="globeShowLabels"> Labels:</label>
-    <input type="checkbox" id="globeShowLabels" onchange="toggleGlobeLabels(this)" />
     <label style="padding-left:12;margin-right:0" for="globeShowSpikes"> Spikes:</label>
     <input type="checkbox" id="globeShowSpikes" onchange="toggleGlobeSpikes(this)" />
-    <label style="padding-left:12;margin-right:0" for="globeAnimation"> Animation:</label>
-    <input type="checkbox" id="globeAnimation" onchange="animateGlobe(this)" />
+    <label style="padding-left:12;margin-right:0" for="globePointsRange"> MaxPoints:</label>
+    <input style="display:inline" type="range" min="1" max="100" value="50" id="globePointsRange" onmouseup="changeGlobePoints()" ontouchend="changeGlobePoints()">
+    <span style="display:inline" id="globeMaxPoints"></span>
   <br><br>
   </div>
   <div id="globe" style="display:none"></div>
